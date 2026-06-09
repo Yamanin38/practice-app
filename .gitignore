@@ -67,3 +67,6 @@ yarn-debug.log*
 /storage/*
 !/storage/.keep
 /public/uploads
+
+# macOS固有の隠しファイル（Macを使っている場合のみ追記でOK）
+.DS_Store
