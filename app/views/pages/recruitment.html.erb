@@ -1,0 +1,78 @@
+<div class="container">
+  <header class="page-header">
+    <h1>入隊案内・募集要項</h1>
+    <p>チームへようこそ</p>
+  </header>
+
+  <div class="page-content">
+    <div class="edit-btn-container">
+      <button class="btn btn-secondary" id="editRecruitmentBtn">編集</button>
+    </div>
+
+    <div id="recruitmentView" class="recruitment-view">
+      <div class="recruitment-content">
+        <p>入隊案内と募集要項がまだ設定されていません。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 入隊案内編集フォーム（モーダル） -->
+  <div class="modal" id="editRecruitmentModal">
+    <div class="modal-content modal-lg">
+      <span class="close" id="closeEditRecruitment">&times;</span>
+      <h2>入隊案内・募集要項を編集</h2>
+      <form id="editRecruitmentForm">
+        <div class="form-group">
+          <label for="recruitmentContent">入隊案内</label>
+          <textarea id="recruitmentContent" rows="12" placeholder="入隊方法や募集要項を入力してください"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">保存</button>
+          <button type="button" class="btn btn-secondary" id="cancelRecruitmentEdit">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .recruitment-view {
+    margin-top: 30px;
+  }
+
+  .recruitment-content {
+    padding: 30px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    line-height: 1.8;
+  }
+
+  .edit-btn-container {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  const editRecruitmentBtn = document.getElementById('editRecruitmentBtn');
+  const editRecruitmentModal = document.getElementById('editRecruitmentModal');
+  const closeEditRecruitment = document.getElementById('closeEditRecruitment');
+  const cancelRecruitmentEdit = document.getElementById('cancelRecruitmentEdit');
+
+  editRecruitmentBtn.addEventListener('click', () => {
+    editRecruitmentModal.style.display = 'block';
+  });
+
+  closeEditRecruitment.addEventListener('click', () => {
+    editRecruitmentModal.style.display = 'none';
+  });
+
+  cancelRecruitmentEdit.addEventListener('click', () => {
+    editRecruitmentModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === editRecruitmentModal) {
+      editRecruitmentModal.style.display = 'none';
+    }
+  });
+</script>

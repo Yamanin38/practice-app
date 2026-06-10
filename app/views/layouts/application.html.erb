@@ -1,15 +1,62 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>App</title>
+    <title>Team Site - チームの紹介サイト</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-logo">
+          <a href="/">Team Site</a>
+        </div>
+        <ul class="nav-menu" id="navMenu">
+          <li class="nav-item"><a href="/" class="nav-link">ホーム</a></li>
+          <li class="nav-item"><a href="/gallery" class="nav-link">ギャラリー</a></li>
+          <li class="nav-item"><a href="/articles" class="nav-link">記事</a></li>
+          <li class="nav-item"><a href="/about" class="nav-link">チーム概要</a></li>
+          <li class="nav-item"><a href="/recruitment" class="nav-link">入隊案内</a></li>
+          <li class="nav-item"><a href="/rules" class="nav-link">チーム規約</a></li>
+          <li class="nav-item"><a href="/users" class="nav-link">ユーザー</a></li>
+          <li class="nav-item"><a href="/contact" class="nav-link">お問い合わせ</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <%= yield %>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 Team Site. All rights reserved.</p>
+    </footer>
+
+    <script>
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('navMenu');
+
+      hamburger.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        hamburger.classList.toggle('active');
+      });
+
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+          navMenu.classList.remove('active');
+          hamburger.classList.remove('active');
+        });
+      });
+    </script>
   </body>
 </html>

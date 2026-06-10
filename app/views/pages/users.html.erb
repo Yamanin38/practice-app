@@ -1,0 +1,188 @@
+<div class="container">
+  <header class="page-header">
+    <h1>ユーザー管理</h1>
+    <p>チームメンバーと権限管理</p>
+  </header>
+
+  <div class="page-content">
+    <div class="users-actions">
+      <button class="btn btn-primary" id="registerUserBtn">新規ユーザー登録</button>
+    </div>
+
+    <div class="users-section">
+      <h2>登録済みユーザー</h2>
+      <div class="users-list" id="usersList">
+        <div class="empty-state">
+          <p>ユーザーがまだ登録されていません</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ユーザー登録フォーム（モーダル） -->
+  <div class="modal" id="registerUserModal">
+    <div class="modal-content">
+      <span class="close" id="closeRegisterModal">&times;</span>
+      <h2>ユーザー登録</h2>
+      <form id="registerUserForm">
+        <div class="form-group">
+          <label for="userName">ユーザー名</label>
+          <input type="text" id="userName" required placeholder="ユーザー名を入力してください">
+        </div>
+        <div class="form-group">
+          <label for="userEmail">メールアドレス</label>
+          <input type="email" id="userEmail" required placeholder="メールアドレスを入力してください">
+        </div>
+        <div class="form-group">
+          <label for="userPassword">パスワード</label>
+          <input type="password" id="userPassword" required placeholder="パスワードを入力してください">
+        </div>
+        <div class="form-group">
+          <label for="userRole">権限</label>
+          <select id="userRole" required>
+            <option value="">選択してください</option>
+            <option value="member">メンバー</option>
+            <option value="moderator">モデレーター</option>
+            <option value="admin">管理者</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">登録</button>
+          <button type="button" class="btn btn-secondary" id="cancelRegister">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 権限変更フォーム（モーダル） -->
+  <div class="modal" id="editRoleModal">
+    <div class="modal-content">
+      <span class="close" id="closeEditRole">&times;</span>
+      <h2>権限を変更</h2>
+      <form id="editRoleForm">
+        <div class="form-group">
+          <label for="editUserName">ユーザー名</label>
+          <input type="text" id="editUserName" readonly>
+        </div>
+        <div class="form-group">
+          <label for="editUserRole">権限</label>
+          <select id="editUserRole" required>
+            <option value="member">メンバー</option>
+            <option value="moderator">モデレーター</option>
+            <option value="admin">管理者</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">変更</button>
+          <button type="button" class="btn btn-secondary" id="cancelEditRole">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .users-actions {
+    margin: 20px 0;
+  }
+
+  .users-section {
+    margin-top: 40px;
+  }
+
+  .users-list {
+    display: grid;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .user-card {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .user-info {
+    flex: 1;
+  }
+
+  .user-role {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: bold;
+  }
+
+  .role-admin {
+    background: #ff6b6b;
+    color: white;
+  }
+
+  .role-moderator {
+    background: #ffa94d;
+    color: white;
+  }
+
+  .role-member {
+    background: #74c0fc;
+    color: white;
+  }
+
+  .user-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+  }
+
+  @media (max-width: 768px) {
+    .user-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .user-actions {
+      width: 100%;
+    }
+
+    .user-actions button {
+      flex: 1;
+    }
+  }
+</style>
+
+<script>
+  const registerUserBtn = document.getElementById('registerUserBtn');
+  const registerUserModal = document.getElementById('registerUserModal');
+  const closeRegisterModal = document.getElementById('closeRegisterModal');
+  const cancelRegister = document.getElementById('cancelRegister');
+
+  registerUserBtn.addEventListener('click', () => {
+    registerUserModal.style.display = 'block';
+  });
+
+  closeRegisterModal.addEventListener('click', () => {
+    registerUserModal.style.display = 'none';
+  });
+
+  cancelRegister.addEventListener('click', () => {
+    registerUserModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === registerUserModal || e.target === document.getElementById('editRoleModal')) {
+      e.target.style.display = 'none';
+    }
+  });
+</script>

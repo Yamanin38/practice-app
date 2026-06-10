@@ -1,0 +1,78 @@
+<div class="container">
+  <header class="page-header">
+    <h1>チーム概要</h1>
+    <p>私たちのチームについて</p>
+  </header>
+
+  <div class="page-content">
+    <div class="edit-btn-container">
+      <button class="btn btn-secondary" id="editAboutBtn">編集</button>
+    </div>
+
+    <div id="aboutView" class="about-view">
+      <div class="about-content">
+        <p>チームの概要情報がまだ設定されていません。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- チーム概要編集フォーム（モーダル） -->
+  <div class="modal" id="editAboutModal">
+    <div class="modal-content modal-lg">
+      <span class="close" id="closeEditAbout">&times;</span>
+      <h2>チーム概要を編集</h2>
+      <form id="editAboutForm">
+        <div class="form-group">
+          <label for="aboutContent">チーム紹介文</label>
+          <textarea id="aboutContent" rows="10" placeholder="チームの概要を入力してください"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">保存</button>
+          <button type="button" class="btn btn-secondary" id="cancelAboutEdit">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .about-view {
+    margin-top: 30px;
+  }
+
+  .about-content {
+    padding: 30px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    line-height: 1.8;
+  }
+
+  .edit-btn-container {
+    margin: 20px 0;
+  }
+</style>
+
+<script>
+  const editAboutBtn = document.getElementById('editAboutBtn');
+  const editAboutModal = document.getElementById('editAboutModal');
+  const closeEditAbout = document.getElementById('closeEditAbout');
+  const cancelAboutEdit = document.getElementById('cancelAboutEdit');
+
+  editAboutBtn.addEventListener('click', () => {
+    editAboutModal.style.display = 'block';
+  });
+
+  closeEditAbout.addEventListener('click', () => {
+    editAboutModal.style.display = 'none';
+  });
+
+  cancelAboutEdit.addEventListener('click', () => {
+    editAboutModal.style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === editAboutModal) {
+      editAboutModal.style.display = 'none';
+    }
+  });
+</script>
