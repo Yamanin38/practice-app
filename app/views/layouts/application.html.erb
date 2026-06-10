@@ -11,7 +11,7 @@
   </head>
 
   <body>
-    <nav class="navbar">
+    <nav class="navbar" <% if current_user %>data-current-user='<%= { username: current_user.username, role: current_user.role }.to_json %>'<% end %>>
       <div class="navbar-container">
         <div class="navbar-logo">
           <a href="/">Team Site</a>
@@ -23,9 +23,19 @@
           <li class="nav-item"><a href="/about" class="nav-link">チーム概要</a></li>
           <li class="nav-item"><a href="/recruitment" class="nav-link">入隊案内</a></li>
           <li class="nav-item"><a href="/rules" class="nav-link">チーム規約</a></li>
-          <li class="nav-item"><a href="/users" class="nav-link">ユーザー</a></li>
           <li class="nav-item"><a href="/contact" class="nav-link">お問い合わせ</a></li>
+          <li class="nav-item admin-menu" id="adminMenu" style="display: none;">
+            <a href="<%= admin_settings_path %>" class="nav-link">管理画面</a>
+          </li>
         </ul>
+        <div class="nav-auth" id="navAuth">
+          <a href="<%= login_path %>" class="btn btn-primary btn-sm" id="loginBtn">ログイン</a>
+          <button class="btn btn-secondary btn-sm" id="logoutBtn" style="display: none;">ログアウト</button>
+          <span class="user-info" id="userInfo" style="display: none;">
+            <span id="userName"></span>
+            <span class="user-role" id="userRole"></span>
+          </span>
+        </div>
         <div class="hamburger" id="hamburger">
           <span></span>
           <span></span>
@@ -45,17 +55,53 @@
     <script>
       const hamburger = document.getElementById('hamburger');
       const navMenu = document.getElementById('navMenu');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const userInfo = document.getElementById('userInfo');
+      const userName = document.getElementById('userName');
+      const userRole = document.getElementById('userRole');
+      const adminMenu = document.getElementById('adminMenu');
 
-      hamburger.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
-        hamburger.classList.toggle('active');
-      });
+      // ログイン状態をチェック（Rails session から取得、サーバーサイド）
+      function checkLoginStatus() {
+        const userElement = document.querySelector('[data-current-user]');
+        const user = userElement ? JSON.parse(userElement.dataset.currentUser) : null;
 
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-          navMenu.classList.remove('active');
-          hamburger.classList.remove('active');
-        });
+        if (user) {
+          loginBtn.style.display = 'none';
+          logoutBtn.style.display = 'inline-block';
+          userInfo.style.display = 'inline-flex';
+          userName.textContent = user.username;
+          const roleText = user.role === 'admin' ? '管理者' : 'メンバー';
+          userRole.textContent = roleText;
+          userRole.className = `user-role ${user.role === 'admin' ? 'admin' : 'member'}`;
+
+          if (user.role === 'admin') {
+            adminMenu.style.display = 'block';
+          }
+        } else {
+          loginBtn.style.display = 'inline-block';
+          logoutBtn.style.display = 'none';
+          userInfo.style.display = 'none';
+          adminMenu.style.display = 'none';
+        }
+      }
+
+      checkLoginStatus();
+
+      logoutBtn.addEventListener('click', () => {
+        // POST logout request via Rails form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/logout';
+        const csrfToken = document.querySelector('[name="csrf-token"]').content;
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_method';
+        input.value = 'delete';
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
       });
     </script>
   </body>

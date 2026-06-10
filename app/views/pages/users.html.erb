@@ -1,188 +1,272 @@
 <div class="container">
   <header class="page-header">
-    <h1>ユーザー管理</h1>
-    <p>チームメンバーと権限管理</p>
+    <h1>管理画面</h1>
+    <p>ユーザー情報と権限の管理</p>
   </header>
 
   <div class="page-content">
-    <div class="users-actions">
-      <button class="btn btn-primary" id="registerUserBtn">新規ユーザー登録</button>
-    </div>
-
-    <div class="users-section">
-      <h2>登録済みユーザー</h2>
-      <div class="users-list" id="usersList">
-        <div class="empty-state">
-          <p>ユーザーがまだ登録されていません</p>
-        </div>
+    <div id="accessDenied" class="access-denied" style="display: none;">
+      <div class="alert alert-danger">
+        <p>このページにアクセスする権限がありません。</p>
+        <p>管理者としてログインしてください。</p>
+        <a href="/login" class="btn btn-primary">ログインページに戻る</a>
       </div>
     </div>
-  </div>
 
-  <!-- ユーザー登録フォーム（モーダル） -->
-  <div class="modal" id="registerUserModal">
-    <div class="modal-content">
-      <span class="close" id="closeRegisterModal">&times;</span>
-      <h2>ユーザー登録</h2>
-      <form id="registerUserForm">
-        <div class="form-group">
-          <label for="userName">ユーザー名</label>
-          <input type="text" id="userName" required placeholder="ユーザー名を入力してください">
-        </div>
-        <div class="form-group">
-          <label for="userEmail">メールアドレス</label>
-          <input type="email" id="userEmail" required placeholder="メールアドレスを入力してください">
-        </div>
-        <div class="form-group">
-          <label for="userPassword">パスワード</label>
-          <input type="password" id="userPassword" required placeholder="パスワードを入力してください">
-        </div>
-        <div class="form-group">
-          <label for="userRole">権限</label>
-          <select id="userRole" required>
-            <option value="">選択してください</option>
-            <option value="member">メンバー</option>
-            <option value="moderator">モデレーター</option>
-            <option value="admin">管理者</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">登録</button>
-          <button type="button" class="btn btn-secondary" id="cancelRegister">キャンセル</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    <div id="adminContent" style="display: none;">
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="admin">管理者の設定</button>
+        <button class="tab-btn" data-tab="member">メンバーの設定</button>
+      </div>
 
-  <!-- 権限変更フォーム（モーダル） -->
-  <div class="modal" id="editRoleModal">
-    <div class="modal-content">
-      <span class="close" id="closeEditRole">&times;</span>
-      <h2>権限を変更</h2>
-      <form id="editRoleForm">
-        <div class="form-group">
-          <label for="editUserName">ユーザー名</label>
-          <input type="text" id="editUserName" readonly>
+      <!-- 管理者設定タブ -->
+      <div id="adminTab" class="tab-content active">
+        <div class="settings-section">
+          <h2>管理者アカウント設定</h2>
+          <form id="adminSettingsForm" class="settings-form">
+            <div class="form-group">
+              <label for="adminCurrentId">現在のユーザーID</label>
+              <input type="text" id="adminCurrentId" value="admin" readonly class="input-readonly">
+            </div>
+
+            <div class="form-group">
+              <label for="adminNewId">新しいユーザーID</label>
+              <input type="text" id="adminNewId" placeholder="新しいIDを入力してください">
+              <small>空欄の場合は変更されません</small>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-group">
+              <label for="adminCurrentPassword">現在のパスワード</label>
+              <input type="password" id="adminCurrentPassword" required placeholder="現在のパスワードを入力してください">
+            </div>
+
+            <div class="form-group">
+              <label for="adminNewPassword">新しいパスワード</label>
+              <input type="password" id="adminNewPassword" placeholder="新しいパスワードを入力してください">
+              <small>空欄の場合は変更されません</small>
+            </div>
+
+            <div class="form-group">
+              <label for="adminConfirmPassword">新しいパスワード（確認）</label>
+              <input type="password" id="adminConfirmPassword" placeholder="新しいパスワードを再度入力してください">
+            </div>
+
+            <button type="submit" class="btn btn-primary">設定を保存</button>
+          </form>
         </div>
-        <div class="form-group">
-          <label for="editUserRole">権限</label>
-          <select id="editUserRole" required>
-            <option value="member">メンバー</option>
-            <option value="moderator">モデレーター</option>
-            <option value="admin">管理者</option>
-          </select>
+      </div>
+
+      <!-- メンバー設定タブ -->
+      <div id="memberTab" class="tab-content">
+        <div class="settings-section">
+          <h2>メンバーアカウント設定</h2>
+          <form id="memberSettingsForm" class="settings-form">
+            <div class="form-group">
+              <label for="memberCurrentId">現在のユーザーID</label>
+              <input type="text" id="memberCurrentId" value="member" readonly class="input-readonly">
+            </div>
+
+            <div class="form-group">
+              <label for="memberNewId">新しいユーザーID</label>
+              <input type="text" id="memberNewId" placeholder="新しいIDを入力してください">
+              <small>空欄の場合は変更されません</small>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-group">
+              <label for="memberCurrentPassword">現在のパスワード</label>
+              <input type="password" id="memberCurrentPassword" required placeholder="現在のパスワードを入力してください">
+            </div>
+
+            <div class="form-group">
+              <label for="memberNewPassword">新しいパスワード</label>
+              <input type="password" id="memberNewPassword" placeholder="新しいパスワードを入力してください">
+              <small>空欄の場合は変更されません</small>
+            </div>
+
+            <div class="form-group">
+              <label for="memberConfirmPassword">新しいパスワード（確認）</label>
+              <input type="password" id="memberConfirmPassword" placeholder="新しいパスワードを再度入力してください">
+            </div>
+
+            <button type="submit" class="btn btn-primary">設定を保存</button>
+          </form>
         </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">変更</button>
-          <button type="button" class="btn btn-secondary" id="cancelEditRole">キャンセル</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>
 
 <style>
-  .users-actions {
-    margin: 20px 0;
-  }
-
-  .users-section {
-    margin-top: 40px;
-  }
-
-  .users-list {
-    display: grid;
-    gap: 15px;
-    margin-top: 20px;
-  }
-
-  .user-card {
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-
-  .user-info {
-    flex: 1;
-  }
-
-  .user-role {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    font-weight: bold;
-  }
-
-  .role-admin {
-    background: #ff6b6b;
-    color: white;
-  }
-
-  .role-moderator {
-    background: #ffa94d;
-    color: white;
-  }
-
-  .role-member {
-    background: #74c0fc;
-    color: white;
-  }
-
-  .user-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .empty-state {
+  .access-denied {
     text-align: center;
     padding: 40px 20px;
-    color: #999;
+  }
+
+  .alert {
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .alert-danger {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+  }
+
+  .alert p {
+    margin: 10px 0;
+  }
+
+  .admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .tab-btn {
+    padding: 12px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #7f8c8d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .tab-btn.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+  }
+
+  .tab-btn:hover {
+    color: #2980b9;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .settings-section {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+
+  .settings-section h2 {
+    margin-bottom: 25px;
+    color: #2c3e50;
+  }
+
+  .settings-form {
+    max-width: 500px;
+  }
+
+  .form-divider {
+    height: 1px;
+    background: #ddd;
+    margin: 25px 0;
+  }
+
+  .input-readonly {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  small {
+    display: block;
+    color: #7f8c8d;
+    font-size: 12px;
+    margin-top: 4px;
   }
 
   @media (max-width: 768px) {
-    .user-card {
-      flex-direction: column;
-      align-items: flex-start;
+    .admin-tabs {
+      flex-wrap: wrap;
     }
 
-    .user-actions {
-      width: 100%;
-    }
-
-    .user-actions button {
-      flex: 1;
+    .settings-section {
+      padding: 20px;
     }
   }
 </style>
 
 <script>
-  const registerUserBtn = document.getElementById('registerUserBtn');
-  const registerUserModal = document.getElementById('registerUserModal');
-  const closeRegisterModal = document.getElementById('closeRegisterModal');
-  const cancelRegister = document.getElementById('cancelRegister');
+  // 権限チェック
+  function checkAdminAccess() {
+    const user = localStorage.getItem('currentUser');
+    const adminContent = document.getElementById('adminContent');
+    const accessDenied = document.getElementById('accessDenied');
 
-  registerUserBtn.addEventListener('click', () => {
-    registerUserModal.style.display = 'block';
-  });
-
-  closeRegisterModal.addEventListener('click', () => {
-    registerUserModal.style.display = 'none';
-  });
-
-  cancelRegister.addEventListener('click', () => {
-    registerUserModal.style.display = 'none';
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === registerUserModal || e.target === document.getElementById('editRoleModal')) {
-      e.target.style.display = 'none';
+    if (!user) {
+      accessDenied.style.display = 'block';
+      adminContent.style.display = 'none';
+      return false;
     }
+
+    const userData = JSON.parse(user);
+    if (userData.role !== 'admin') {
+      accessDenied.style.display = 'block';
+      adminContent.style.display = 'none';
+      return false;
+    }
+
+    accessDenied.style.display = 'none';
+    adminContent.style.display = 'block';
+    return true;
+  }
+
+  // タブ切り替え
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabName = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(tabName + 'Tab').classList.add('active');
+    });
   });
+
+  // フォーム送信
+  document.getElementById('adminSettingsForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById('adminNewPassword').value;
+    const confirmPassword = document.getElementById('adminConfirmPassword').value;
+
+    if (newPassword && newPassword !== confirmPassword) {
+      alert('新しいパスワードが一致しません。');
+      return;
+    }
+
+    alert('管理者の設定が保存されました。\n(実装は後ほど)');
+  });
+
+  document.getElementById('memberSettingsForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById('memberNewPassword').value;
+    const confirmPassword = document.getElementById('memberConfirmPassword').value;
+
+    if (newPassword && newPassword !== confirmPassword) {
+      alert('新しいパスワードが一致しません。');
+      return;
+    }
+
+    alert('メンバーの設定が保存されました。\n(実装は後ほど)');
+  });
+
+  // ページロード時に権限チェック
+  checkAdminAccess();
 </script>

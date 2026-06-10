@@ -182,37 +182,41 @@ body {
   margin-bottom: 20px;
 }
 
-/* Buttons */
-.btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: 14px;
+}
+
+.user-role {
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
   font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  text-align: center;
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.btn-primary {
-  background-color: #3498db;
-  color: white;
+.user-role.admin {
+  background: #e74c3c;
 }
 
-.btn-primary:hover {
-  background-color: #2980b9;
+.user-role.member {
+  background: #3498db;
 }
 
-.btn-secondary {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
-}
 
 /* Forms */
 .form-group {
@@ -343,6 +347,7 @@ body {
   .navbar-container {
     height: auto;
     padding: 15px 20px;
+    position: relative;
   }
 
   .navbar-logo a {
@@ -378,6 +383,17 @@ body {
 
   .nav-item:last-child {
     border-bottom: none;
+  }
+
+  .nav-auth {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-auth .btn {
+    width: 100%;
   }
 
   .hamburger {

@@ -1,12 +1,18 @@
 Rails.application.routes.draw do
   root "pages#index"
 
+  get "login", to: "sessions#new"
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
+
+  resources :images, only: [:create, :index, :destroy]
+
   get "gallery", to: "pages#gallery"
   get "articles", to: "pages#articles"
   get "about", to: "pages#about"
   get "recruitment", to: "pages#recruitment"
   get "rules", to: "pages#rules"
-  get "users", to: "pages#users"
+  get "admin/settings", to: "pages#users", as: :admin_settings
   get "contact", to: "pages#contact"
 
   get "up" => "rails/health#show", as: :rails_health_check

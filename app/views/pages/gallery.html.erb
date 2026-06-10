@@ -6,39 +6,66 @@
 
   <div class="page-content">
     <div class="gallery-actions">
-      <button class="btn btn-primary" id="uploadBtn">写真を投稿</button>
+      <% if current_user %>
+        <button class="btn btn-primary" id="uploadBtn">写真を投稿</button>
+      <% else %>
+        <p class="login-prompt"><a href="<%= login_path %>">ログイン</a>して写真を投稿</p>
+      <% end %>
+
       <div class="filter-section">
-        <input type="text" placeholder="検索..." id="searchInput" class="search-input">
+        <% if @upload_dates.any? %>
+          <%= form_with url: gallery_path, method: :get, local: true, class: "date-filter-form" do |f| %>
+            <%= f.select :date, [["すべての日付", ""]] + @upload_dates.map { |d| [d.strftime("%Y年%m月%d日"), d] },
+                { selected: params[:date] }, { class: "date-filter" } %>
+          <% end %>
+        <% end %>
       </div>
     </div>
 
-    <div class="gallery-grid" id="galleryGrid">
-      <div class="gallery-item placeholder">
-        <div class="placeholder-content">
-          <p>写真がまだ投稿されていません</p>
+    <% if @images.any? %>
+      <div class="gallery-grid" id="galleryGrid">
+        <% @images.each do |image| %>
+          <div class="gallery-item">
+            <% if image.file.present? %>
+              <%= image_tag image.file.variant(resize_to_fill: [400, 400]), alt: "Gallery image", class: "gallery-image" %>
+            <% end %>
+            <div class="gallery-overlay">
+              <p class="upload-date"><%= image.created_at.strftime("%Y年%m月%d日") %></p>
+              <% if current_user&.admin? %>
+                <%= button_to "削除", image_path(image), method: :delete,
+                    data: { confirm: "本当に削除しますか?" }, class: "btn btn-small btn-danger" %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="gallery-grid">
+        <div class="gallery-item placeholder">
+          <div class="placeholder-content">
+            <p>写真がまだ投稿されていません</p>
+          </div>
         </div>
       </div>
-    </div>
+    <% end %>
   </div>
 
   <!-- 写真投稿フォーム（モーダル） -->
-  <div class="modal" id="uploadModal">
-    <div class="modal-content">
-      <span class="close" id="closeModal">&times;</span>
-      <h2>写真を投稿</h2>
-      <form id="uploadForm">
-        <div class="form-group">
-          <label for="imageFile">画像ファイル</label>
-          <input type="file" id="imageFile" accept="image/*" required>
-        </div>
-        <div class="form-group">
-          <label for="imageCaption">キャプション</label>
-          <textarea id="imageCaption" rows="3" placeholder="写真の説明を入力してください"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">投稿</button>
-      </form>
+  <% if current_user %>
+    <div class="modal" id="uploadModal">
+      <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>写真を投稿</h2>
+        <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
+          <div class="form-group">
+            <%= f.label :file, "画像ファイル" %>
+            <%= f.file_field :file, accept: "image/*", required: true %>
+          </div>
+          <%= f.submit "投稿", class: "btn btn-primary" %>
+        <% end %>
+      </div>
     </div>
-  </div>
+  <% end %>
 </div>
 
 <style>
@@ -57,6 +84,39 @@
     aspect-ratio: 1;
   }
 
+  .gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gallery-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    padding: 15px;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .gallery-item:hover .gallery-overlay {
+    opacity: 1;
+  }
+
+  .upload-date {
+    margin: 0;
+    font-size: 14px;
+  }
+
   .placeholder {
     display: flex;
     align-items: center;
@@ -72,29 +132,95 @@
     align-items: center;
   }
 
+  .filter-section {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .date-filter {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .login-prompt {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .login-prompt a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .login-prompt a:hover {
+    text-decoration: underline;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
   @media (max-width: 768px) {
     .gallery-grid {
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .gallery-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-section {
+      width: 100%;
     }
   }
 </style>
 
 <script>
-  const uploadBtn = document.getElementById('uploadBtn');
-  const uploadModal = document.getElementById('uploadModal');
-  const closeModal = document.getElementById('closeModal');
+  document.addEventListener('DOMContentLoaded', () => {
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadModal = document.getElementById('uploadModal');
+    const closeModal = document.getElementById('closeModal');
+    const dateFilter = document.querySelector('.date-filter');
 
-  uploadBtn.addEventListener('click', () => {
-    uploadModal.style.display = 'block';
-  });
+    if (uploadBtn && uploadModal) {
+      uploadBtn.addEventListener('click', () => {
+        uploadModal.style.display = 'block';
+      });
+    }
 
-  closeModal.addEventListener('click', () => {
-    uploadModal.style.display = 'none';
-  });
+    if (closeModal && uploadModal) {
+      closeModal.addEventListener('click', () => {
+        uploadModal.style.display = 'none';
+      });
+    }
 
-  window.addEventListener('click', (e) => {
-    if (e.target === uploadModal) {
-      uploadModal.style.display = 'none';
+    if (uploadModal) {
+      window.addEventListener('click', (e) => {
+        if (e.target === uploadModal) {
+          uploadModal.style.display = 'none';
+        }
+      });
+    }
+
+    if (dateFilter) {
+      dateFilter.addEventListener('change', (e) => {
+        const form = e.target.closest('form');
+        if (form) form.submit();
+      });
     }
   });
 </script>

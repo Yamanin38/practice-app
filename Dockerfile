@@ -1,7 +1,7 @@
 FROM ruby:3.3
 
-# 開発に必要な最小限のパッケージだけをインストール
-RUN apt-get update -qq && apt-get install -y nodejs sqlite3 libsqlite3-dev
+# 開発に必要なパッケージをインストール
+RUN apt-get update -qq && apt-get install -y nodejs sqlite3 libsqlite3-dev libvips libvips-dev
 
 WORKDIR /app
 
