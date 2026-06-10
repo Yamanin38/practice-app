@@ -29,8 +29,8 @@
           </li>
         </ul>
         <div class="nav-auth" id="navAuth">
-          <a href="<%= login_path %>" class="btn btn-primary btn-sm" id="loginBtn">ログイン</a>
-          <button class="btn btn-secondary btn-sm" id="logoutBtn" style="display: none;">ログアウト</button>
+        <a href="<%= login_path %>" class="btn btn-secondary btn-sm" id="loginBtn">ログイン</a>
+        <button class="btn btn-secondary btn-sm" id="logoutBtn" style="display: none;">ログアウト</button>
           <span class="user-info" id="userInfo" style="display: none;">
             <span id="userName"></span>
             <span class="user-role" id="userRole"></span>
@@ -90,18 +90,25 @@
       checkLoginStatus();
 
       logoutBtn.addEventListener('click', () => {
-        // POST logout request via Rails form
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/logout';
-        const csrfToken = document.querySelector('[name="csrf-token"]').content;
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_method';
-        input.value = 'delete';
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/logout';
+
+      // ← これが抜けていた！
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'authenticity_token';
+      csrfInput.value = document.querySelector('[name="csrf-token"]').content;
+      form.appendChild(csrfInput);
+
+      const methodInput = document.createElement('input');
+      methodInput.type = 'hidden';
+      methodInput.name = '_method';
+      methodInput.value = 'delete';
+      form.appendChild(methodInput);
+
+      document.body.appendChild(form);
+      form.submit();
       });
     </script>
   </body>
