@@ -166,6 +166,12 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+a.feature-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .feature-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -417,14 +423,16 @@ body {
   }
 
   .nav-auth {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    margin-top: 10px;
+  flex-direction: row;
+  gap: 8px;
+  width: auto;
+  margin-top: 0;
   }
 
   .nav-auth .btn {
-    width: 100%;
+  width: auto;
+  padding: 6px 12px;
+  font-size: 12px;
   }
 
   .hamburger {
@@ -491,6 +499,30 @@ body {
 
   .user-card {
     flex-direction: column;
+  }
+  .navbar-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  }
+
+  .navbar-logo {
+    flex-shrink: 0;
+    flex: 1;
+  }
+
+  .hamburger {
+    flex-shrink: 0;
+    order: 3;
+    margin-left: 8px;
+  }
+
+  .nav-auth {
+    order: 2;
+    flex-shrink: 0;
+    margin-left: auto;
   }
 }
 
