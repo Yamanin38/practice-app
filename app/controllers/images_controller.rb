@@ -16,15 +16,15 @@ class ImagesController < ApplicationController
     end
 
     if @image.save
-      redirect_to gallery_path, notice: "画像をアップロードしました"
+      redirect_to gallery_path, notice: "画像をアップロードしました", status: :see_other  # ← status追加
     else
-      redirect_to gallery_path, alert: "画像のアップロードに失敗しました"
+      redirect_to gallery_path, alert: "画像のアップロードに失敗しました", status: :see_other
     end
   end
 
   def destroy
     @image.destroy
-    redirect_to gallery_path, notice: "画像を削除しました"
+    redirect_to gallery_path, notice: "画像を削除しました", status: :see_other
   end
 
   private

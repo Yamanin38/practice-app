@@ -5,11 +5,12 @@ class PagesController < ApplicationController
   def gallery
     @images = Image.ordered_by_date
     @images = @images.by_date(params[:date]) if params[:date].present?
-    @upload_dates = Image.pluck(Arel.sql("DISTINCT DATE(created_at)"))
-                         .map { |d| Date.parse(d) }
-                         .sort
-                         .reverse
-  end
+    @upload_dates = Image.all
+                        .map { |img| img.created_at.in_time_zone('Tokyo').to_date }
+                        .uniq
+                        .sort
+                        .reverse
+end
 
   def articles
   end

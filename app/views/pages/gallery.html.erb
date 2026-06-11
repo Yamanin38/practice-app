@@ -806,10 +806,11 @@ function renderCalendar() {
 
     if (uploadDateSet.has(dateStr)) {
       div.classList.add('has-image');
-      div.addEventListener('click', () => {
-        selectedDateInput.value = dateStr;
-        renderCalendar();
-      });
+      div.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedDateInput.value = dateStr;
+      renderCalendar();
+    });
     }
 
     if (dateStr === selectedVal) div.classList.add('selected');
