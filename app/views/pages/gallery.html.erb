@@ -30,9 +30,10 @@
       <%= image_tag image.file.variant(resize_to_fill: [400, 400]),
           alt: "Gallery image",
           class: "gallery-image",
-          data: { 
+          data: {
             image_id: image.id,
-            full_url: url_for(image.file)
+            full_url: url_for(image.file),
+            file_size: image.file.blob.byte_size
           } %>
     <% end %>
     <div class="gallery-overlay">
@@ -55,18 +56,27 @@
   <!-- 写真投稿フォーム（モーダル） -->
   <% if current_user %>
     <div class="modal" id="uploadModal">
-      <div class="modal-content">
-        <span class="close" id="closeModal">&times;</span>
-        <h2>写真を投稿</h2>
-        <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
-          <div class="form-group">
-            <%= f.label :file, "画像ファイル" %>
-            <%= f.file_field :file, accept: "image/*", required: true %>
-          </div>
-          <%= f.submit "投稿", class: "btn btn-primary" %>
-        <% end %>
-      </div>
+  <div class="modal-content upload-modal-content">
+    <div class="upload-modal-header">
+      <span class="close" id="closeModal">&times;</span>
+      <h2>写真を投稿</h2>
     </div>
+    <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
+      <div class="upload-preview-area" id="uploadPreviewArea">
+        <div class="upload-placeholder" id="uploadPlaceholder">
+          <p class="upload-icon">🖼️</p>
+          <p class="upload-hint">ファイルを選択してください</p>
+        </div>
+        <img id="uploadPreviewImage" class="upload-preview-image" style="display:none;" alt="プレビュー">
+      </div>
+      <div class="upload-file-group">
+        <label for="file_input_field" class="file-label">画像を選択</label>
+        <%= f.file_field :file, accept: "image/*", required: true, id: "file_input_field" %>
+      </div>
+      <%= f.submit "投稿", class: "btn btn-primary upload-submit-btn" %>
+    <% end %>
+  </div>
+</div>
   <% end %>
 
   <!-- 画像拡大モーダル -->
@@ -77,9 +87,10 @@
     </div>
     <div class="image-modal-body">
       <img id="modalImage" src="" alt="拡大画像" class="modal-full-image">
+      <span class="modal-upload-date" id="modalUploadDate"></span>
+      <span class="modal-image-size" id="modalImageSize"></span>
     </div>
     <div class="image-modal-footer">
-      <span class="upload-info" id="modalUploadDate"></span>
       <% if current_user&.admin? %>
         <form id="modalDeleteForm" method="POST" style="margin:0;">
           <input type="hidden" name="_method" value="delete">
@@ -240,9 +251,11 @@
 
 .image-modal-body {
   margin: 0;
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 
 .modal-full-image {
@@ -254,14 +267,31 @@
   object-fit: contain;
 }
 
+.modal-upload-date {
+  position: absolute;
+  bottom: -28px;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
+.modal-image-size {
+  position: absolute;
+  bottom: -28px;
+  right: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
 .image-modal-footer {
   display: flex;
   gap: 12px;
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 14px 20px;
+  padding: 36px 20px 14px 20px;
   background: rgba(0, 0, 0, 0.4);
+  position: relative;
 }
 
 .btn-danger {
@@ -298,6 +328,129 @@
 .upload-info {
   color: rgba(255, 255, 255, 0.6);
   font-size: 12px;
+}
+
+.upload-modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  width: 90%;
+  max-width: 480px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: auto;
+}
+
+.upload-modal-header {
+  width: 100%;
+  padding: 20px 20px 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.upload-modal-header h2 {
+  margin: 0 0 16px 0;
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+.upload-modal-header .close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 26px;
+  color: #aaa;
+}
+
+.upload-modal-header .close:hover {
+  color: #333;
+}
+
+.upload-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px 24px 24px;
+  gap: 16px;
+}
+
+.upload-preview-area {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 300px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 2px dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.upload-placeholder {
+  text-align: center;
+  color: #aaa;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 14px;
+}
+
+.upload-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.upload-file-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-label {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #f0f4ff;
+  color: #3498db;
+  border: 2px solid #3498db;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.file-label:hover {
+  background: #3498db;
+  color: white;
+}
+
+#file_input_field {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.upload-submit-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
 }
 
 #imageViewModal {
@@ -375,14 +528,22 @@ function openImageModal(imageId, isAdmin) {
   const modalImage = document.getElementById('modalImage');
   const deleteForm = document.getElementById('modalDeleteForm');
   const modalUploadDate = document.getElementById('modalUploadDate');
+  const modalImageSize = document.getElementById('modalImageSize');
 
   const imgElement = document.querySelector(`[data-image-id="${imageId}"]`);
   const galleryItem = imgElement.closest('.gallery-item');
   const dateText = galleryItem.querySelector('.upload-date')?.textContent || '';
+  const fileSize = imgElement.dataset.fileSize;
 
-  // サムネイルではなくオリジナルのURLを使用
   modalImage.src = imgElement.dataset.fullUrl;
   if (modalUploadDate) modalUploadDate.textContent = dateText;
+  if (modalImageSize && fileSize) {
+    const kb = (fileSize / 1024).toFixed(1);
+    const display = kb >= 1000
+      ? `${(kb / 1024).toFixed(1)} MB`
+      : `${kb} KB`;
+    modalImageSize.textContent = display;
+  }
   if (deleteForm) deleteForm.action = `/images/${imageId}`;
 
   modal.classList.add('active');
@@ -401,5 +562,20 @@ window.addEventListener('click', (e) => {
   if (e.target === modal) {
     modal.classList.remove('active');
   }
+});
+
+document.getElementById('file_input_field').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const preview = document.getElementById('uploadPreviewImage');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    preview.src = event.target.result;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
 });
 </script>
