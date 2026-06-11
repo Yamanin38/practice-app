@@ -26,9 +26,14 @@ body {
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
   padding: 0 20px;
   height: 70px;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
 }
 
 .navbar-logo a {
@@ -46,23 +51,30 @@ body {
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 30px;
-  align-items: center;
+  gap: 0;
+  align-items: stretch;
+  height: 100%;
+}
+
+.nav-item {
+  display: flex;
+  align-items: stretch;
 }
 
 .nav-item a {
   color: white;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
   font-weight: 500;
-  display: block;
-  width: 100%;
-  padding: 15px 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 100%;
 }
 
 .nav-item a:hover {
   color: #3498db;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .hamburger {
@@ -397,19 +409,10 @@ a.feature-card {
   }
 
   .nav-menu {
-  position: fixed;
-  left: 0;
-  top: 60px;
-  flex-direction: column;
-  background-color: #34495e;
-  width: 100%;
-  text-align: center;
-  display: none;
-  gap: 0;
-  padding: 0;
-  max-height: calc(100vh - 60px);
-  overflow-y: auto;
-  z-index: 999;
+    display: flex;
+    list-style: none;
+    gap: 0;
+    align-items: stretch;
   }
 
   .nav-menu.active {
@@ -418,8 +421,8 @@ a.feature-card {
   }
 
   .nav-item {
-    border-bottom: 1px solid #2c3e50;
-    width: 100%;
+    display: flex;
+    align-items: stretch;
   }
 
   .nav-item:last-child {
