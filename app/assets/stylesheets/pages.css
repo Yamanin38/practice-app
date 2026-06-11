@@ -511,7 +511,7 @@ a.feature-card {
   }
 
   .gallery-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
   }
 
   .articles-actions {
