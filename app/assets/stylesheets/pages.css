@@ -409,21 +409,39 @@ a.feature-card {
   }
 
   .nav-menu {
-    display: flex;
-    list-style: none;
-    gap: 0;
-    align-items: stretch;
-  }
+  position: fixed;
+  left: 0;
+  top: 60px;
+  flex-direction: column;
+  background-color: #34495e;
+  width: 100%;
+  text-align: center;
+  display: none;
+  gap: 0;
+  padding: 0;
+  height: auto;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  z-index: 999;
+  align-items: stretch;
+}
 
-  .nav-menu.active {
-    display: flex;
-    max-height: 500px;
-  }
+.nav-menu.active {
+  display: flex;
+}
 
-  .nav-item {
-    display: flex;
-    align-items: stretch;
-  }
+.nav-item {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid #2c3e50;
+}
+
+.nav-item a {
+  display: block;
+  width: 100%;
+  padding: 15px 0;
+  height: auto;
+}
 
   .nav-item:last-child {
     border-bottom: none;
