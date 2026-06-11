@@ -13,7 +13,7 @@
       <% end %>
 
       <div class="filter-section">
-  <%= form_with url: gallery_path, method: :get, local: true, class: "date-filter-form" do |f| %>
+  <%= form_with url: gallery_path, method: :get, local: true, class: "date-filter-form", data: { turbo: false } do |f| %>
     <button type="button" class="btn-cal-toggle" id="calToggleBtn">
   📅 <span id="calToggleText"><%= params[:date].present? ? params[:date] : "日付で絞り込む" %></span>
 </button>
@@ -29,9 +29,8 @@
       <div class="calendar-days" id="calendarDays"></div>
       <input type="hidden" name="date" id="calSelectedDate" value="<%= params[:date] %>">
       <div class="calendar-actions">
-        <button type="button" class="btn-cal-clear" id="calClear">クリア</button>
-        <button type="submit" class="btn-cal-apply">絞り込む</button>
-      </div>
+    <button type="button" class="btn-cal-clear" id="calClear">クリア</button>
+  </div>
     </div>
   <% end %>
 </div>
@@ -902,6 +901,9 @@ function renderCalendar() {
       e.stopPropagation();
       selectedDateInput.value = dateStr;
       renderCalendar();
+      fetchImages(dateStr);
+      calendarFilter.style.display = 'none';
+      calToggleBtn.classList.remove('active');
     });
     }
 
@@ -931,6 +933,9 @@ document.getElementById('calNext').addEventListener('click', () => {
 document.getElementById('calClear').addEventListener('click', () => {
   selectedDateInput.value = '';
   renderCalendar();
+  fetchImages('');
+  calendarFilter.style.display = 'none';
+  calToggleBtn.classList.remove('active');
 });
 
 // トグルボタン
@@ -951,4 +956,48 @@ document.addEventListener('click', (e) => {
 
 // 初期描画
 renderCalendar();
+
+// 絞り込むボタン
+document.getElementById('calApplyBtn').addEventListener('click', () => {
+  fetchImages(selectedDateInput.value);
+  calendarFilter.style.display = 'none';
+  calToggleBtn.classList.remove('active');
+});
+
+// Ajax でギャラリーを更新
+function fetchImages(date) {
+  const url = date ? `/gallery?date=${date}` : '/gallery';
+
+  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(res => res.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // グリッドを差し替え
+      const newGrid = doc.getElementById('galleryGrid');
+      const oldGrid = document.getElementById('galleryGrid');
+      if (newGrid && oldGrid) {
+        oldGrid.replaceWith(newGrid);
+      } else if (!newGrid && oldGrid) {
+        // 該当なし（空状態）
+        oldGrid.innerHTML = '<div class="gallery-item placeholder"><div class="placeholder-content"><p>写真がまだ投稿されていません</p></div></div>';
+      }
+
+      // ページネーションを差し替え
+      const newPager = doc.querySelector('.pagination-container');
+      const oldPager = document.querySelector('.pagination-container');
+      if (oldPager) {
+        if (newPager) oldPager.replaceWith(newPager);
+        else oldPager.innerHTML = '';
+      }
+
+      // URLを書き換え（ブラウザ履歴に残す）
+      history.pushState({}, '', url);
+
+      // トグルボタンのテキスト更新
+      document.getElementById('calToggleText').textContent = date || '日付で絞り込む';
+    })
+    .catch(err => console.error('fetchImages error:', err));
+}
 </script>
