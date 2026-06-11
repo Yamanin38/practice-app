@@ -25,19 +25,21 @@
     <% if @images.any? %>
       <div class="gallery-grid" id="galleryGrid">
         <% @images.each do |image| %>
-          <div class="gallery-item">
-            <% if image.file.present? %>
-              <%= image_tag image.file.variant(resize_to_fill: [400, 400]), alt: "Gallery image", class: "gallery-image" %>
-            <% end %>
-            <div class="gallery-overlay">
-              <p class="upload-date"><%= image.created_at.strftime("%Y年%m月%d日") %></p>
-              <% if current_user&.admin? %>
-                <%= button_to "削除", image_path(image), method: :delete,
-                    data: { confirm: "本当に削除しますか?" }, class: "btn btn-small btn-danger" %>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
+  <div class="gallery-item" onclick="openImageModal(<%= image.id %>, '<%= current_user&.admin? %>')">
+    <% if image.file.present? %>
+      <%= image_tag image.file.variant(resize_to_fill: [400, 400]),
+          alt: "Gallery image",
+          class: "gallery-image",
+          data: { 
+            image_id: image.id,
+            full_url: url_for(image.file)
+          } %>
+    <% end %>
+    <div class="gallery-overlay">
+      <p class="upload-date"><%= image.created_at.strftime("%Y年%m月%d日") %></p>
+    </div>
+  </div>
+<% end %>
       </div>
     <% else %>
       <div class="gallery-grid">
@@ -66,6 +68,29 @@
       </div>
     </div>
   <% end %>
+
+  <!-- 画像拡大モーダル -->
+<div class="modal" id="imageViewModal">
+  <div class="modal-content image-view-modal-content">
+    <div class="image-modal-header">
+      <span class="close" id="closeImageModal">&times;</span>
+    </div>
+    <div class="image-modal-body">
+      <img id="modalImage" src="" alt="拡大画像" class="modal-full-image">
+    </div>
+    <div class="image-modal-footer">
+      <span class="upload-info" id="modalUploadDate"></span>
+      <% if current_user&.admin? %>
+        <form id="modalDeleteForm" method="POST" style="margin:0;">
+          <input type="hidden" name="_method" value="delete">
+          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+          <button type="submit" class="btn btn-danger">🗑 削除</button>
+        </form>
+      <% end %>
+      <button class="btn btn-secondary" id="closeImageModalBtn">閉じる</button>
+    </div>
+  </div>
+</div>
 </div>
 
 <style>
@@ -173,6 +198,126 @@
     background-color: #c82333;
   }
 
+  .image-view-modal-content {
+  background: rgba(15, 15, 15, 0.95);
+  border-radius: 12px;
+  padding: 0;
+  width: auto;
+  max-width: 90vw;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  position: relative;
+  margin: auto;
+}
+
+.image-modal-header {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+}
+
+.image-modal-header .close {
+  color: white;
+  font-size: 28px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s ease;
+}
+
+.image-modal-header .close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.image-modal-body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-full-image {
+  max-width: 85vw;
+  max-height: 75vh;
+  width: auto;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.image-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.btn-danger:hover {
+  opacity: 0.85;
+}
+
+.image-modal-footer .btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.image-modal-footer .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.upload-info {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+#imageViewModal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+}
+
+#imageViewModal.active {
+  display: flex;
+}
+
   @media (max-width: 768px) {
     .gallery-grid {
       grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -223,4 +368,38 @@
       });
     }
   });
+
+  // 画像モーダル
+function openImageModal(imageId, isAdmin) {
+  const modal = document.getElementById('imageViewModal');
+  const modalImage = document.getElementById('modalImage');
+  const deleteForm = document.getElementById('modalDeleteForm');
+  const modalUploadDate = document.getElementById('modalUploadDate');
+
+  const imgElement = document.querySelector(`[data-image-id="${imageId}"]`);
+  const galleryItem = imgElement.closest('.gallery-item');
+  const dateText = galleryItem.querySelector('.upload-date')?.textContent || '';
+
+  // サムネイルではなくオリジナルのURLを使用
+  modalImage.src = imgElement.dataset.fullUrl;
+  if (modalUploadDate) modalUploadDate.textContent = dateText;
+  if (deleteForm) deleteForm.action = `/images/${imageId}`;
+
+  modal.classList.add('active');
+}
+
+document.getElementById('closeImageModal').addEventListener('click', () => {
+  document.getElementById('imageViewModal').classList.remove('active');
+});
+
+document.getElementById('closeImageModalBtn').addEventListener('click', () => {
+  document.getElementById('imageViewModal').classList.remove('active');
+});
+
+window.addEventListener('click', (e) => {
+  const modal = document.getElementById('imageViewModal');
+  if (e.target === modal) {
+    modal.classList.remove('active');
+  }
+});
 </script>

@@ -5,7 +5,15 @@ class ImagesController < ApplicationController
 
   def create
     @image = current_user.images.build
-    @image.file.attach(params[:file])
+
+    if params[:file].present?
+      compressed = compress_image(params[:file])
+      @image.file.attach(
+        io: compressed[:io],
+        filename: params[:file].original_filename,
+        content_type: "image/jpeg"
+      )
+    end
 
     if @image.save
       redirect_to gallery_path, notice: "画像をアップロードしました"
@@ -20,6 +28,23 @@ class ImagesController < ApplicationController
   end
 
   private
+
+  def compress_image(file)
+  image = Vips::Image.new_from_file(file.tempfile.path)
+  
+  # 高さが720pxを超える場合は720pにリサイズ
+  if image.height > 720
+    scale = 720.0 / image.height
+    image = image.resize(scale)
+  end
+  
+  output = StringIO.new
+  image.jpegsave_buffer(Q: 55).tap do |buf|
+    output.write(buf)
+    output.rewind
+  end
+  { io: output }
+end
 
   def set_image
     @image = Image.find(params[:id])
