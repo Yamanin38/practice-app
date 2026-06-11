@@ -129,16 +129,30 @@
     display: flex;
     justify-content: center;
     margin-top: 30px;
+  }
+
+  .pagination-container nav {
+    display: flex;
+    flex-wrap: wrap;
     gap: 6px;
+    align-items: center;
+    justify-content: center;
   }
 
-  .pagination-container .page {
-    display: inline-block;
+  .pagination-container nav .page,
+  .pagination-container nav .first,
+  .pagination-container nav .prev,
+  .pagination-container nav .next,
+  .pagination-container nav .last,
+  .pagination-container nav .gap {
+    display: block;
+    margin: 0;
+    padding: 0;
   }
 
-  .pagination-container a,
-  .pagination-container span {
-    display: inline-flex;
+  .pagination-container nav a,
+  .pagination-container nav span {
+    display: flex;
     align-items: center;
     justify-content: center;
     min-width: 36px;
@@ -152,23 +166,50 @@
     font-weight: 600;
     background: white;
     transition: all 0.2s ease;
+    line-height: 1;
   }
 
-  .pagination-container a:hover {
+  .pagination-container nav a:hover {
     background: #3498db;
     color: white;
     border-color: #3498db;
   }
 
-  .pagination-container .current {
+  .pagination-container nav .current a,
+  .pagination-container nav .current span,
+  .pagination-container nav .current em {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
     background: #3498db;
     color: white;
     border-color: #3498db;
+    font-style: normal;
+    line-height: 1;
   }
 
-  .pagination-container .disabled {
+  .pagination-container nav span.page.current {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+  line-height: 1;
+}
+
+  .pagination-container nav .disabled a,
+  .pagination-container nav .disabled span {
     color: #ccc;
+    border-color: #eee;
     pointer-events: none;
+    background: #fafafa;
   }
 
   .calendar-filter {
