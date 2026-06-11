@@ -47,6 +47,8 @@ gem "image_processing", "~> 1.2"
 # Use ruby-vips for image compression
 gem "ruby-vips", "~> 2.2"
 
+gem "kaminari"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]

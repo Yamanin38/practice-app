@@ -57,6 +57,11 @@
   </div>
 <% end %>
       </div>
+
+      <div class="pagination-container">
+        <%= paginate @images %>
+      </div>
+
     <% else %>
       <div class="gallery-grid">
         <div class="gallery-item placeholder">
@@ -120,6 +125,52 @@
 </div>
 
 <style>
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    gap: 6px;
+  }
+
+  .pagination-container .page {
+    display: inline-block;
+  }
+
+  .pagination-container a,
+  .pagination-container span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    background: white;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-container a:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+  }
+
+  .pagination-container .current {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+  }
+
+  .pagination-container .disabled {
+    color: #ccc;
+    pointer-events: none;
+  }
+
   .calendar-filter {
     background: white;
     border: 1px solid #ddd;
