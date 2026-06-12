@@ -117,25 +117,41 @@
   </div>
 
   <!-- 記事詳細モーダル -->
-        <div class="modal" id="articleViewModal">
-        <div class="modal-content modal-lg article-view-modal-content">
-            <span class="close" id="closeArticleViewModal">&times;</span>
+<div class="modal" id="articleViewModal">
+  <div class="article-view-modal-content">
 
-            <div id="viewModalImageArea" class="view-modal-images"></div>
+    <!-- ヒーロー画像エリア -->
+    <div id="viewModalImageArea" class="view-modal-hero"></div>
 
-            <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
-            <button class="preview-close-btn" id="closePreview">&times;</button>
-            <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
-            </div>
+    <!-- 画像フルスクリーンプレビュー -->
+    <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
+      <button class="preview-close-btn" id="closePreview">&times;</button>
+      <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
+    </div>
 
-            <div class="view-modal-body">
-            <h2 id="viewModalTitle"></h2>
-            <p id="viewModalMeta" class="article-meta"></p>
-            <div id="viewModalTags" class="article-tags"></div>
-            <p id="viewModalContent" class="view-modal-content-text"></p>
-            </div>
-        </div>
-        </div>
+    <!-- ヘッダー（閉じるボタン） -->
+    <div class="article-view-header">
+      <button class="article-view-close" id="closeArticleViewModal" aria-label="閉じる">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 本文エリア -->
+    <div class="view-modal-body">
+      <div class="view-modal-meta-row">
+        <span class="view-modal-author-badge" id="viewModalAuthorBadge"></span>
+        <span class="view-modal-date" id="viewModalDate"></span>
+      </div>
+      <h2 id="viewModalTitle" class="view-modal-title"></h2>
+      <div id="viewModalTags" class="view-modal-tags"></div>
+      <div class="view-modal-divider"></div>
+      <p id="viewModalContent" class="view-modal-content-text"></p>
+    </div>
+
+  </div>
+</div>
 
   <!-- 記事編集モーダル -->
   <div class="modal" id="editArticleModal">
@@ -393,55 +409,127 @@
   cursor: pointer;
 }
 
-.article-view-modal-content {
-  max-width: 1000px;
-  padding: 0;
-  overflow: hidden;
-}
-
-.view-modal-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  background: white;
-  padding: 16px;
+/* ─── 記事詳細モーダル ─── */
+#articleViewModal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: rgba(10, 14, 23, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   justify-content: center;
   align-items: center;
+  padding: 20px;
 }
 
-.view-modal-img-wrap {
-  overflow: hidden;
-  cursor: pointer;
+#articleViewModal.modal-open {
+  display: flex;
+}
+
+.article-view-modal-content {
   position: relative;
-  max-width: 220px;
-  max-height: 220px;
-  border-radius: 6px;
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+  animation: modalRise 0.28s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+  scrollbar-width: none;
 }
 
-.view-modal-img-wrap img {
+.article-view-modal-content::-webkit-scrollbar { display: none; }
+
+@keyframes modalRise {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* 閉じるボタン（右上に浮かす） */
+.article-view-header {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+}
+
+.article-view-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.85);
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.article-view-close:hover {
+  background: #1a1a2e;
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* ヒーロー画像グリッド */
+.view-modal-hero {
+  width: 100%;
+  display: grid;
+  gap: 3px;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  background: #f3f4f6;
+  min-height: 0;
+}
+
+.view-modal-hero.hero-1 { grid-template-columns: 1fr; }
+.view-modal-hero.hero-2 { grid-template-columns: 1fr 1fr; }
+.view-modal-hero.hero-3 { grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; }
+.view-modal-hero.hero-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+.view-modal-hero.hero-3 .view-hero-img-wrap:first-child { grid-row: 1 / 3; }
+
+.view-hero-img-wrap {
+  overflow: hidden;
+  cursor: zoom-in;
+  position: relative;
+  max-height: 340px;
+}
+
+.view-hero-img-wrap.hero-2,
+.view-hero-img-wrap.hero-3,
+.view-hero-img-wrap.hero-4 {
+  max-height: 200px;
+}
+
+.view-hero-img-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
-  transition: opacity 0.2s ease;
+  transition: transform 0.4s ease;
 }
 
-.view-modal-img-wrap:hover img {
-  opacity: 0.85;
-}
+.view-hero-img-wrap:hover img { transform: scale(1.04); }
 
+/* フルプレビュー */
 .view-modal-preview {
   position: relative;
   background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-height: 400px;
 }
 
 .preview-full-img {
   max-width: 100%;
-  max-height: 400px;
+  max-height: 420px;
   object-fit: contain;
   display: block;
 }
@@ -449,8 +537,8 @@
 .preview-close-btn {
   position: absolute;
   top: 10px;
-  right: 14px;
-  background: rgba(0,0,0,0.5);
+  right: 12px;
+  background: rgba(0,0,0,0.55);
   color: white;
   border: none;
   border-radius: 50%;
@@ -463,10 +551,94 @@
   justify-content: center;
   z-index: 10;
   line-height: 1;
+  transition: background 0.2s;
 }
 
-.preview-close-btn:hover {
-  background: rgba(255,255,255,0.2);
+.preview-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* 本文エリア */
+.view-modal-body {
+  padding: 28px 32px 36px;
+}
+
+/* メタ行（投稿者 + 日付） */
+.view-modal-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.view-modal-author-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.view-modal-date {
+  font-size: 12px;
+  color: #9ca3af;
+  letter-spacing: 0.04em;
+}
+
+/* タイトル */
+.view-modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.35;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+/* タグ */
+.view-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.view-modal-tags .tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6366f1;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* 区切り線 */
+.view-modal-divider {
+  height: 1px;
+  background: linear-gradient(to right, #e5e7eb, transparent);
+  margin-bottom: 20px;
+}
+
+/* 本文テキスト */
+.view-modal-content-text {
+  font-size: 15px;
+  line-height: 1.85;
+  color: #374151;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .article-view-modal-content { border-radius: 12px; max-height: 95vh; }
+  .view-modal-body { padding: 20px 20px 28px; }
+  .view-modal-title { font-size: 20px; }
+  .view-hero-img-wrap { max-height: 220px; }
 }
 
 .view-modal-body {
@@ -560,13 +732,22 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
 
-  // ── モーダル開閉ヘルパー ──
-  function openModal(id) {
+  // openModal / closeModal ヘルパーを更新
+function openModal(id) {
   const el = document.getElementById(id);
-  el.style.display = id === 'articleViewModal' ? 'flex' : 'block';
+  if (id === 'articleViewModal') {
+    el.style.display = 'flex';
+    el.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+  } else {
+    el.style.display = 'block';
+  }
 }
 function closeModal(id) {
-  document.getElementById(id).style.display = 'none';
+  const el = document.getElementById(id);
+  el.style.display = 'none';
+  el.classList.remove('modal-open');
+  if (id === 'articleViewModal') document.body.style.overflow = '';
 }
 
   // ── 投稿モーダル ──
@@ -592,10 +773,12 @@ function closeModal(id) {
   });
 
   window.addEventListener('click', (e) => {
-  ['articleModal', 'articleViewModal'].forEach(id => {
+  ['editArticleModal'].forEach(id => {
     const el = document.getElementById(id);
     if (e.target === el) el.style.display = 'none';
   });
+  const viewModal = document.getElementById('articleViewModal');
+  if (e.target === viewModal) closeModal('articleViewModal');
 });
 
   // ── 画像ピッカー ──
@@ -672,64 +855,76 @@ function closeModal(id) {
   });
 
   // ── 記事カードクリックで詳細モーダル ──
-  document.querySelectorAll('.article-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.article-actions')) return;
+document.querySelectorAll('.article-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.article-actions')) return;
 
-      const title = card.querySelector('h3').textContent;
-      //   修正後（データ属性から全文を引っ張る）
-        const content = card.dataset.fullContent;
-      const meta = card.querySelector('.article-meta').textContent;
-      const tagsEl = card.querySelector('.article-tags');
+    const title   = card.dataset.fullTitle   || card.querySelector('h3').textContent;
+    const content = card.dataset.fullContent || '';
+    const metaRaw = card.querySelector('.article-meta').textContent.trim();
+    // "username ・ YYYY年MM月DD日" を分割
+    const metaParts = metaRaw.split('・').map(s => s.trim());
+    const author = metaParts[0] || '';
+    const date   = metaParts[1] || '';
+    const tagsEl = card.querySelector('.article-tags');
 
-      document.getElementById('viewModalTitle').textContent = title;
-      document.getElementById('viewModalContent').textContent = content;
-      document.getElementById('viewModalMeta').textContent = meta;
+    document.getElementById('viewModalTitle').textContent   = title;
+    document.getElementById('viewModalContent').textContent = content;
+    document.getElementById('viewModalAuthorBadge').textContent = author;
+    document.getElementById('viewModalDate').textContent    = date;
 
-      const tagsContainer = document.getElementById('viewModalTags');
-      tagsContainer.innerHTML = '';
-      if (tagsEl) {
-        tagsEl.querySelectorAll('.tag').forEach(tag => {
-          const span = document.createElement('span');
-          span.className = 'tag';
-          span.textContent = tag.textContent;
-          tagsContainer.appendChild(span);
-        });
-      }
+    const tagsContainer = document.getElementById('viewModalTags');
+    tagsContainer.innerHTML = '';
+    if (tagsEl) {
+      tagsEl.querySelectorAll('.tag').forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = tag.textContent;
+        tagsContainer.appendChild(span);
+      });
+    }
 
-      const imageArea = document.getElementById('viewModalImageArea');
-      imageArea.innerHTML = '';
-      imageArea.classList.remove('has-images');
-      imageArea.style.display = 'flex';
+    // 画像ヒーローグリッド
+    const imageArea = document.getElementById('viewModalImageArea');
+    imageArea.innerHTML = '';
+    imageArea.className = 'view-modal-hero';
+    document.getElementById('viewModalPreview').style.display = 'none';
 
-      card.querySelectorAll('.article-thumb').forEach(thumb => {
+    const thumbs = card.querySelectorAll('.article-thumb');
+    const count  = thumbs.length;
+
+    if (count > 0) {
+      imageArea.classList.add(`hero-${Math.min(count, 4)}`);
+      thumbs.forEach((thumb, idx) => {
+        if (idx >= 4) return;
         const img = thumb.querySelector('img');
         if (!img) return;
-        imageArea.classList.add('has-images');
 
+        const fullUrl = thumb.dataset.fullUrl || img.src;
         const wrap = document.createElement('div');
-        wrap.className = 'view-modal-img-wrap';
+        wrap.className = `view-hero-img-wrap hero-${Math.min(count, 4)}`;
 
         const image = document.createElement('img');
         image.src = img.src;
         image.alt = '';
+        wrap.appendChild(image);
 
-        const fullUrl = thumb.dataset.fullUrl || img.src;
-wrap.appendChild(image);
-wrap.addEventListener('click', (e) => {
-  e.stopPropagation();
-  const modal = document.getElementById('articleImageViewModal');
-  document.getElementById('articleModalImage').src = fullUrl;
-  modal.classList.add('active');
-});
+        wrap.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          document.getElementById('articleModalImage').src = fullUrl;
+          document.getElementById('articleImageViewModal').classList.add('active');
+        });
 
         imageArea.appendChild(wrap);
       });
+    }
 
-      document.getElementById('viewModalPreview').style.display = 'none';
-      openModal('articleViewModal');
-    });
+    const modal = document.getElementById('articleViewModal');
+    modal.style.display = 'flex';
+    modal.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
   });
+});
 
   // ── 検索 ──
   document.getElementById('searchArticles').addEventListener('input', (e) => {
