@@ -31,7 +31,7 @@
             <% end %>
             <div class="article-body">
               <h3><%= article.title %></h3>
-              <p class="article-content-preview"><%= article.content %></p>
+              <p class="article-content-preview"><%= truncate(article.content, length: 60) %></p>
               <% if article.tags.present? %>
                 <div class="article-tags">
                   <% article.tags.split(",").map(&:strip).each do |tag| %>
@@ -677,7 +677,8 @@ function closeModal(id) {
       if (e.target.closest('.article-actions')) return;
 
       const title = card.querySelector('h3').textContent;
-      const content = card.querySelector('.article-content-preview').textContent;
+      //   修正後（データ属性から全文を引っ張る）
+        const content = card.dataset.fullContent;
       const meta = card.querySelector('.article-meta').textContent;
       const tagsEl = card.querySelector('.article-tags');
 
@@ -738,22 +739,6 @@ wrap.addEventListener('click', (e) => {
     });
   });
 
-// DOMContentLoaded 内の最後に追加（既存の切り捨て処理と置き換え）
-document.querySelectorAll('.article-card').forEach(card => {
-  const titleEl = card.querySelector('h3');
-  const contentEl = card.querySelector('.article-content-preview');
-
-  if (titleEl) {
-    const full = card.dataset.fullTitle || titleEl.textContent;
-    titleEl.textContent = full.length > 40 ? full.slice(0, 40) + '...' : full;
-  }
-
-  if (contentEl) {
-    const full = card.dataset.fullContent || contentEl.textContent;
-    contentEl.textContent = full.length > 60 ? full.slice(0, 60) + '...' : full;
-  }
-});
-
 });
 
 document.getElementById('closeArticleImageModal').addEventListener('click', () => {
@@ -767,19 +752,6 @@ document.getElementById('closeArticleImageModalBtn').addEventListener('click', (
 document.getElementById('articleImageViewModal').addEventListener('click', (e) => {
   if (e.target === document.getElementById('articleImageViewModal')) {
     document.getElementById('articleImageViewModal').classList.remove('active');
-  }
-});
-
-document.querySelectorAll('.article-card').forEach(card => {
- const title = card.dataset.fullTitle || card.querySelector('h3').dataset.originalText;
-const content = card.dataset.fullContent || card.querySelector('.article-content-preview').dataset.originalText;
-
-  if (titleEl && titleEl.textContent.length > 40) {
-    titleEl.textContent = titleEl.textContent.slice(0, 40) + '...';
-  }
-
-  if (contentEl && contentEl.textContent.length > 60) {
-    contentEl.textContent = contentEl.textContent.slice(0, 60) + '...';
   }
 });
 </script>
