@@ -17,7 +17,7 @@
     <div class="articles-list" id="articlesList">
       <% if @articles.any? %>
         <% @articles.each do |article| %>
-          <div class="article-card" data-article-id="<%= article.id %>">
+          <div class="article-card" data-article-id="<%= article.id %>" data-full-title="<%= article.title %>" data-full-content="<%= article.content %>">
             <% if article.images.any? %>
               <div class="article-thumbnails">
                 <% article.images.first(4).each do |img| %>
@@ -116,6 +116,27 @@
     </div>
   </div>
 
+  <!-- 記事詳細モーダル -->
+        <div class="modal" id="articleViewModal">
+        <div class="modal-content modal-lg article-view-modal-content">
+            <span class="close" id="closeArticleViewModal">&times;</span>
+
+            <div id="viewModalImageArea" class="view-modal-images"></div>
+
+            <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
+            <button class="preview-close-btn" id="closePreview">&times;</button>
+            <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
+            </div>
+
+            <div class="view-modal-body">
+            <h2 id="viewModalTitle"></h2>
+            <p id="viewModalMeta" class="article-meta"></p>
+            <div id="viewModalTags" class="article-tags"></div>
+            <p id="viewModalContent" class="view-modal-content-text"></p>
+            </div>
+        </div>
+        </div>
+
   <!-- 記事編集モーダル -->
   <div class="modal" id="editArticleModal">
     <div class="modal-content modal-lg">
@@ -135,27 +156,6 @@
         <div class="form-group">
           <label>タグ</label>
           <input type="text" name="article[tags]" id="editArticleTags" placeholder="例：イベント, 冒険">
-        </div>
-
-        <!-- 記事詳細モーダル -->
-        <div class="modal" id="articleViewModal">
-        <div class="modal-content modal-lg article-view-modal-content">
-            <span class="close" id="closeArticleViewModal">&times;</span>
-
-            <div id="viewModalImageArea" class="view-modal-images"></div>
-
-            <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
-            <button class="preview-close-btn" id="closePreview">&times;</button>
-            <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
-            </div>
-
-            <div class="view-modal-body">
-            <h2 id="viewModalTitle"></h2>
-            <p id="viewModalMeta" class="article-meta"></p>
-            <div id="viewModalTags" class="article-tags"></div>
-            <p id="viewModalContent" class="view-modal-content-text"></p>
-            </div>
-        </div>
         </div>
 
         <!-- 画像選択 -->
@@ -186,6 +186,20 @@
       </form>
     </div>
   </div>
+  <!-- 記事用画像拡大モーダル -->
+    <div class="modal" id="articleImageViewModal">
+    <div class="modal-content article-image-view-modal-content">
+        <div class="image-modal-header">
+        <span class="close" id="closeArticleImageModal">&times;</span>
+        </div>
+        <div class="image-modal-body">
+        <img id="articleModalImage" src="" alt="拡大画像" class="modal-full-image">
+        </div>
+        <div class="image-modal-footer">
+        <button class="btn btn-secondary" id="closeArticleImageModalBtn">閉じる</button>
+        </div>
+    </div>
+    </div>
 </div>
 
 <style>
@@ -380,34 +394,34 @@
 }
 
 .article-view-modal-content {
-  max-width: 760px;
+  max-width: 1000px;
   padding: 0;
   overflow: hidden;
 }
 
 .view-modal-images {
   display: flex;
-  gap: 3px;
-  background: #111;
-  min-height: 0;
-}
-
-.view-modal-images.has-images {
-  min-height: 200px;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: white;
+  padding: 16px;
+  justify-content: center;
+  align-items: center;
 }
 
 .view-modal-img-wrap {
-  flex: 1;
   overflow: hidden;
   cursor: pointer;
   position: relative;
-  max-height: 260px;
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 6px;
 }
 
 .view-modal-img-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transition: opacity 0.2s ease;
 }
@@ -472,6 +486,65 @@
   margin-top: 12px;
 }
 
+#articleImageViewModal {
+  display: none;
+  position: fixed;
+  z-index: 3000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+}
+
+#articleImageViewModal.active {
+  display: flex;
+}
+
+.article-image-view-modal-content {
+  background: rgba(15, 15, 15, 0.95);
+  border-radius: 12px;
+  padding: 0;
+  width: auto;
+  max-width: 90vw;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+  position: relative;
+  margin: auto;
+}
+
+#articleViewModal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#articleViewModal .article-view-modal-content {
+  margin: 0 auto;
+}
+
+.article-body h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.article-content-preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
   @media (max-width: 768px) {
     .article-thumb {
       max-width: 50%;
@@ -489,11 +562,12 @@
 
   // ── モーダル開閉ヘルパー ──
   function openModal(id) {
-    document.getElementById(id).style.display = 'block';
-  }
-  function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
-  }
+  const el = document.getElementById(id);
+  el.style.display = id === 'articleViewModal' ? 'flex' : 'block';
+}
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
 
   // ── 投稿モーダル ──
   const newArticleBtn = document.getElementById('newArticleBtn');
@@ -517,13 +591,12 @@
     document.getElementById('viewModalImageArea').style.display = 'flex';
   });
 
-  // ── 背景クリックで閉じる ──
   window.addEventListener('click', (e) => {
-    ['articleModal', 'editArticleModal', 'articleViewModal'].forEach(id => {
-      const el = document.getElementById(id);
-      if (e.target === el) el.style.display = 'none';
-    });
+  ['articleModal', 'articleViewModal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (e.target === el) el.style.display = 'none';
   });
+});
 
   // ── 画像ピッカー ──
   function initPicker(pickerId, counterId, maxCount) {
@@ -641,12 +714,13 @@
         image.alt = '';
 
         const fullUrl = thumb.dataset.fullUrl || img.src;
-        wrap.appendChild(image);
-        wrap.addEventListener('click', () => {
-          document.getElementById('viewModalPreviewImg').src = fullUrl;
-          document.getElementById('viewModalPreview').style.display = 'flex';
-          imageArea.style.display = 'none';
-        });
+wrap.appendChild(image);
+wrap.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const modal = document.getElementById('articleImageViewModal');
+  document.getElementById('articleModalImage').src = fullUrl;
+  modal.classList.add('active');
+});
 
         imageArea.appendChild(wrap);
       });
@@ -664,5 +738,48 @@
     });
   });
 
+// DOMContentLoaded 内の最後に追加（既存の切り捨て処理と置き換え）
+document.querySelectorAll('.article-card').forEach(card => {
+  const titleEl = card.querySelector('h3');
+  const contentEl = card.querySelector('.article-content-preview');
+
+  if (titleEl) {
+    const full = card.dataset.fullTitle || titleEl.textContent;
+    titleEl.textContent = full.length > 40 ? full.slice(0, 40) + '...' : full;
+  }
+
+  if (contentEl) {
+    const full = card.dataset.fullContent || contentEl.textContent;
+    contentEl.textContent = full.length > 60 ? full.slice(0, 60) + '...' : full;
+  }
+});
+
+});
+
+document.getElementById('closeArticleImageModal').addEventListener('click', () => {
+  document.getElementById('articleImageViewModal').classList.remove('active');
+});
+
+document.getElementById('closeArticleImageModalBtn').addEventListener('click', () => {
+  document.getElementById('articleImageViewModal').classList.remove('active');
+});
+
+document.getElementById('articleImageViewModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('articleImageViewModal')) {
+    document.getElementById('articleImageViewModal').classList.remove('active');
+  }
+});
+
+document.querySelectorAll('.article-card').forEach(card => {
+ const title = card.dataset.fullTitle || card.querySelector('h3').dataset.originalText;
+const content = card.dataset.fullContent || card.querySelector('.article-content-preview').dataset.originalText;
+
+  if (titleEl && titleEl.textContent.length > 40) {
+    titleEl.textContent = titleEl.textContent.slice(0, 40) + '...';
+  }
+
+  if (contentEl && contentEl.textContent.length > 60) {
+    contentEl.textContent = contentEl.textContent.slice(0, 60) + '...';
+  }
 });
 </script>
