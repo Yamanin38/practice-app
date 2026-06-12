@@ -1,0 +1,464 @@
+<div class="container">
+  <header class="page-header">
+    <h1>記事</h1>
+    <p>チームの活動記録と思い出</p>
+  </header>
+
+  <div class="page-content">
+    <div class="articles-actions">
+      <% if current_user %>
+        <button class="btn btn-primary" id="newArticleBtn">新しい記事を投稿</button>
+      <% end %>
+      <div class="filter-section">
+        <input type="text" placeholder="記事を検索..." id="searchArticles" class="search-input">
+      </div>
+    </div>
+
+    <div class="articles-list" id="articlesList">
+      <% if @articles.any? %>
+        <% @articles.each do |article| %>
+          <div class="article-card" data-article-id="<%= article.id %>">
+            <% if article.images.any? %>
+              <div class="article-thumbnails">
+                <% article.images.first(4).each do |img| %>
+                  <% if img.file.attached? %>
+                    <div class="article-thumb">
+                      <%= image_tag img.file.variant(resize_to_fill: [200, 200]), class: "thumb-img" %>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            <% end %>
+            <div class="article-body">
+              <h3><%= article.title %></h3>
+              <p class="article-content-preview"><%= article.content %></p>
+              <% if article.tags.present? %>
+                <div class="article-tags">
+                  <% article.tags.split(",").map(&:strip).each do |tag| %>
+                    <span class="tag"><%= tag %></span>
+                  <% end %>
+                </div>
+              <% end %>
+              <p class="article-meta">
+                <%= article.user.username %> ・ <%= article.created_at.strftime("%Y年%m月%d日") %>
+              </p>
+              <% if current_user&.admin? || current_user == article.user %>
+                <div class="article-actions">
+                  <button class="btn btn-secondary btn-sm edit-article-btn"
+                    data-id="<%= article.id %>"
+                    data-title="<%= article.title %>"
+                    data-content="<%= article.content %>"
+                    data-tags="<%= article.tags %>"
+                    data-image-ids="<%= article.images.pluck(:id).join(',') %>">
+                    編集
+                  </button>
+                  <%= button_to "削除", article_path(article), method: :delete,
+                      class: "btn btn-danger btn-sm",
+                      data: { confirm: "本当に削除しますか？" } %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="empty-state">
+          <p>記事がまだ投稿されていません</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 記事投稿モーダル -->
+  <div class="modal" id="articleModal">
+    <div class="modal-content modal-lg">
+      <span class="close" id="closeArticleModal">&times;</span>
+      <h2>記事を投稿</h2>
+      <%= form_with url: articles_path, method: :post, id: "articleForm", scope: :article do |f| %>
+        <div class="form-group">
+            <%= f.label :title, "タイトル" %>
+            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください" %>
+        </div>
+        <div class="form-group">
+            <%= f.label :content, "本文" %>
+            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください" %>
+        </div>
+        <div class="form-group">
+            <%= f.label :tags, "タグ（カンマで区切る）" %>
+            <%= f.text_field :tags, placeholder: "例：イベント, 冒険, 面白かった" %>
+        </div>
+
+        <!-- 画像選択 -->
+        <div class="form-group">
+          <label>画像を選択（最大4枚）</label>
+          <div class="image-picker" id="imagePicker">
+            <% if @all_images.any? %>
+              <% @all_images.each do |img| %>
+                <% if img.file.attached? %>
+                  <div class="picker-item" data-image-id="<%= img.id %>">
+                    <%= image_tag img.file.variant(resize_to_fill: [120, 120]), class: "picker-thumb" %>
+                    <div class="picker-check">✓</div>
+                    <input type="checkbox" name="image_ids[]" value="<%= img.id %>" class="picker-checkbox" style="display:none;">
+                  </div>
+                <% end %>
+              <% end %>
+            <% else %>
+              <p class="no-images-msg">ギャラリーに画像がありません</p>
+            <% end %>
+          </div>
+          <p class="picker-hint">選択中: <span id="selectedCount">0</span> / 4枚</p>
+        </div>
+
+        <div class="form-actions">
+          <%= f.submit "投稿", class: "btn btn-primary" %>
+          <button type="button" class="btn btn-secondary" id="cancelArticle">キャンセル</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- 記事編集モーダル -->
+  <div class="modal" id="editArticleModal">
+    <div class="modal-content modal-lg">
+      <span class="close" id="closeEditModal">&times;</span>
+      <h2>記事を編集</h2>
+      <form id="editArticleForm" method="post">
+        <input type="hidden" name="_method" value="patch">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <div class="form-group">
+          <label>タイトル</label>
+          <input type="text" name="article[title]" id="editArticleTitle" required>
+        </div>
+        <div class="form-group">
+          <label>本文</label>
+          <textarea name="article[content]" id="editArticleContent" rows="6" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>タグ</label>
+          <input type="text" name="article[tags]" id="editArticleTags" placeholder="例：イベント, 冒険">
+        </div>
+
+        <!-- 画像選択 -->
+        <div class="form-group">
+          <label>画像を選択（最大4枚）</label>
+          <div class="image-picker" id="editImagePicker">
+            <% if @all_images.any? %>
+              <% @all_images.each do |img| %>
+                <% if img.file.attached? %>
+                  <div class="picker-item" data-image-id="<%= img.id %>">
+                    <%= image_tag img.file.variant(resize_to_fill: [120, 120]), class: "picker-thumb" %>
+                    <div class="picker-check">✓</div>
+                    <input type="checkbox" name="image_ids[]" value="<%= img.id %>" class="picker-checkbox" style="display:none;">
+                  </div>
+                <% end %>
+              <% end %>
+            <% else %>
+              <p class="no-images-msg">ギャラリーに画像がありません</p>
+            <% end %>
+          </div>
+          <p class="picker-hint">選択中: <span id="editSelectedCount">0</span> / 4枚</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">更新</button>
+          <button type="button" class="btn btn-secondary" id="cancelEdit">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 30px;
+  }
+
+  .article-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    overflow: hidden;
+  }
+
+  .article-thumbnails {
+    display: flex;
+    gap: 4px;
+    background: #000;
+  }
+
+  .article-thumb {
+    flex: 1;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    max-width: 25%;
+  }
+
+  .thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .article-body {
+    padding: 20px;
+  }
+
+  .article-body h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 20px;
+  }
+
+  .article-content-preview {
+    color: #555;
+    white-space: pre-wrap;
+    margin-bottom: 12px;
+  }
+
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .tag {
+    background: #ebf5fb;
+    color: #2980b9;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .article-meta {
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .article-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-danger {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .btn-danger:hover {
+    background: #c0392b;
+  }
+
+  /* 画像ピッカー */
+  .image-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fafafa;
+  }
+
+  .picker-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .picker-item.selected {
+    border-color: #3498db;
+  }
+
+  .picker-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .picker-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .picker-check {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .picker-item.selected .picker-check {
+    display: flex;
+  }
+
+  .picker-hint {
+    color: #888;
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  .no-images-msg {
+    color: #aaa;
+    font-size: 14px;
+    padding: 20px;
+    text-align: center;
+    grid-column: 1 / -1;
+  }
+
+  .articles-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .article-thumb {
+      max-width: 50%;
+    }
+
+    .articles-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+</style>
+
+<script>
+  // モーダル開閉
+  const newArticleBtn = document.getElementById('newArticleBtn');
+  const articleModal = document.getElementById('articleModal');
+  const closeArticleModal = document.getElementById('closeArticleModal');
+  const cancelArticle = document.getElementById('cancelArticle');
+
+  if (newArticleBtn) {
+    newArticleBtn.addEventListener('click', () => {
+      articleModal.style.display = 'block';
+    });
+  }
+
+  closeArticleModal.addEventListener('click', () => articleModal.style.display = 'none');
+  cancelArticle.addEventListener('click', () => articleModal.style.display = 'none');
+
+  document.getElementById('closeEditModal').addEventListener('click', () => {
+    document.getElementById('editArticleModal').style.display = 'none';
+  });
+  document.getElementById('cancelEdit').addEventListener('click', () => {
+    document.getElementById('editArticleModal').style.display = 'none';
+  });
+
+  window.addEventListener('click', (e) => {
+    if (e.target === articleModal) articleModal.style.display = 'none';
+    if (e.target === document.getElementById('editArticleModal')) {
+      document.getElementById('editArticleModal').style.display = 'none';
+    }
+  });
+
+  // 画像ピッカー共通処理
+  function initPicker(pickerId, counterId, maxCount) {
+    const picker = document.getElementById(pickerId);
+    const counter = document.getElementById(counterId);
+    if (!picker) return;
+
+    picker.querySelectorAll('.picker-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const checkbox = item.querySelector('.picker-checkbox');
+        const selected = picker.querySelectorAll('.picker-item.selected');
+
+        if (item.classList.contains('selected')) {
+          item.classList.remove('selected');
+          checkbox.checked = false;
+        } else {
+          if (selected.length >= maxCount) return;
+          item.classList.add('selected');
+          checkbox.checked = true;
+        }
+
+        const newCount = picker.querySelectorAll('.picker-item.selected').length;
+        counter.textContent = newCount;
+
+        // 4枚上限に達したら未選択を薄くする
+        picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
+          i.classList.toggle('disabled', newCount >= maxCount);
+        });
+      });
+    });
+  }
+
+  initPicker('imagePicker', 'selectedCount', 4);
+  initPicker('editImagePicker', 'editSelectedCount', 4);
+
+  // 編集ボタン
+  document.querySelectorAll('.edit-article-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const imageIds = btn.dataset.imageIds ? btn.dataset.imageIds.split(',') : [];
+
+      document.getElementById('editArticleTitle').value = btn.dataset.title;
+      document.getElementById('editArticleContent').value = btn.dataset.content;
+      document.getElementById('editArticleTags').value = btn.dataset.tags || '';
+      document.getElementById('editArticleForm').action = `/articles/${id}`;
+
+      // 画像の選択状態を復元
+      const picker = document.getElementById('editImagePicker');
+      picker.querySelectorAll('.picker-item').forEach(item => {
+        item.classList.remove('selected', 'disabled');
+        item.querySelector('.picker-checkbox').checked = false;
+      });
+
+      imageIds.forEach(imgId => {
+        const item = picker.querySelector(`[data-image-id="${imgId}"]`);
+        if (item) {
+          item.classList.add('selected');
+          item.querySelector('.picker-checkbox').checked = true;
+        }
+      });
+
+      const count = imageIds.length;
+      document.getElementById('editSelectedCount').textContent = count;
+      picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
+        i.classList.toggle('disabled', count >= 4);
+      });
+
+      document.getElementById('editArticleModal').style.display = 'block';
+    });
+  });
+
+  // 検索
+  document.getElementById('searchArticles').addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.article-card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? 'block' : 'none';
+    });
+  });
+</script>

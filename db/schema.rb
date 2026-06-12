@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_11_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_12_000002) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -42,6 +42,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_11_000002) do
     t.index ["blob_id"], name: "index_active_storage_variant_records_on_blob_id"
   end
 
+  create_table "article_images", force: :cascade do |t|
+    t.integer "article_id", null: false
+    t.integer "image_id", null: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["article_id"], name: "index_article_images_on_article_id"
+    t.index ["image_id"], name: "index_article_images_on_image_id"
+  end
+
+  create_table "articles", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "title", null: false
+    t.text "content", null: false
+    t.string "tags"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_articles_on_user_id"
+  end
+
   create_table "images", force: :cascade do |t|
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
@@ -60,5 +80,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_11_000002) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "article_images", "articles"
+  add_foreign_key "article_images", "images"
+  add_foreign_key "articles", "users"
   add_foreign_key "images", "users"
 end

@@ -8,7 +8,10 @@ Rails.application.routes.draw do
   resources :images, only: [:create, :index, :destroy]
 
   get "gallery", to: "pages#gallery"
-  get "articles", to: "pages#articles"
+  get "articles", to: "articles#index"
+  post "articles", to: "articles#create"
+  patch "articles/:id", to: "articles#update", as: :article
+  delete "articles/:id", to: "articles#destroy"
   get "about", to: "pages#about"
   get "recruitment", to: "pages#recruitment"
   get "rules", to: "pages#rules"

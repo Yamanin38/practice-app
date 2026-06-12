@@ -13,9 +13,6 @@ class PagesController < ApplicationController
                         .reverse
   end
 
-  def articles
-  end
-
   def about
   end
 
