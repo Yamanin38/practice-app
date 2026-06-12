@@ -22,8 +22,8 @@
               <div class="article-thumbnails">
                 <% article.images.first(4).each do |img| %>
                   <% if img.file.attached? %>
-                    <div class="article-thumb">
-                      <%= image_tag img.file.variant(resize_to_fill: [200, 200]), class: "thumb-img" %>
+                    <div class="article-thumb" data-full-url="<%= url_for(img.file) %>">
+                        <%= image_tag img.file.variant(resize_to_fill: [200, 200]), class: "thumb-img" %>
                     </div>
                   <% end %>
                 <% end %>
@@ -135,6 +135,27 @@
         <div class="form-group">
           <label>タグ</label>
           <input type="text" name="article[tags]" id="editArticleTags" placeholder="例：イベント, 冒険">
+        </div>
+
+        <!-- 記事詳細モーダル -->
+        <div class="modal" id="articleViewModal">
+        <div class="modal-content modal-lg article-view-modal-content">
+            <span class="close" id="closeArticleViewModal">&times;</span>
+
+            <div id="viewModalImageArea" class="view-modal-images"></div>
+
+            <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
+            <button class="preview-close-btn" id="closePreview">&times;</button>
+            <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
+            </div>
+
+            <div class="view-modal-body">
+            <h2 id="viewModalTitle"></h2>
+            <p id="viewModalMeta" class="article-meta"></p>
+            <div id="viewModalTags" class="article-tags"></div>
+            <p id="viewModalContent" class="view-modal-content-text"></p>
+            </div>
+        </div>
         </div>
 
         <!-- 画像選択 -->
@@ -341,6 +362,116 @@
     align-items: center;
   }
 
+  .article-actions .btn-secondary {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  border: 1px solid #bdc3c7;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.article-actions .btn-secondary:hover {
+  background-color: #dde1e3;
+}
+
+.article-card {
+  cursor: pointer;
+}
+
+.article-view-modal-content {
+  max-width: 760px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.view-modal-images {
+  display: flex;
+  gap: 3px;
+  background: #111;
+  min-height: 0;
+}
+
+.view-modal-images.has-images {
+  min-height: 200px;
+}
+
+.view-modal-img-wrap {
+  flex: 1;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  max-height: 260px;
+}
+
+.view-modal-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+.view-modal-img-wrap:hover img {
+  opacity: 0.85;
+}
+
+.view-modal-preview {
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 400px;
+}
+
+.preview-full-img {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+}
+
+.preview-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  line-height: 1;
+}
+
+.preview-close-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.view-modal-body {
+  padding: 24px;
+}
+
+.view-modal-body h2 {
+  margin: 0 0 8px 0;
+  color: #2c3e50;
+  font-size: 22px;
+}
+
+.view-modal-content-text {
+  color: #444;
+  white-space: pre-wrap;
+  line-height: 1.8;
+  margin-top: 12px;
+}
+
   @media (max-width: 768px) {
     .article-thumb {
       max-width: 50%;
@@ -354,59 +485,68 @@
 </style>
 
 <script>
-  // モーダル開閉
-  const newArticleBtn = document.getElementById('newArticleBtn');
-  const articleModal = document.getElementById('articleModal');
-  const closeArticleModal = document.getElementById('closeArticleModal');
-  const cancelArticle = document.getElementById('cancelArticle');
+  document.addEventListener('DOMContentLoaded', () => {
 
-  if (newArticleBtn) {
-    newArticleBtn.addEventListener('click', () => {
-      articleModal.style.display = 'block';
-    });
+  // ── モーダル開閉ヘルパー ──
+  function openModal(id) {
+    document.getElementById(id).style.display = 'block';
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
   }
 
-  closeArticleModal.addEventListener('click', () => articleModal.style.display = 'none');
-  cancelArticle.addEventListener('click', () => articleModal.style.display = 'none');
+  // ── 投稿モーダル ──
+  const newArticleBtn = document.getElementById('newArticleBtn');
+  if (newArticleBtn) {
+    newArticleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openModal('articleModal');
+    });
+  }
+  document.getElementById('closeArticleModal').addEventListener('click', () => closeModal('articleModal'));
+  document.getElementById('cancelArticle').addEventListener('click', () => closeModal('articleModal'));
 
-  document.getElementById('closeEditModal').addEventListener('click', () => {
-    document.getElementById('editArticleModal').style.display = 'none';
-  });
-  document.getElementById('cancelEdit').addEventListener('click', () => {
-    document.getElementById('editArticleModal').style.display = 'none';
+  // ── 編集モーダル ──
+  document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editArticleModal'));
+  document.getElementById('cancelEdit').addEventListener('click', () => closeModal('editArticleModal'));
+
+  // ── 詳細モーダル ──
+  document.getElementById('closeArticleViewModal').addEventListener('click', () => closeModal('articleViewModal'));
+  document.getElementById('closePreview').addEventListener('click', () => {
+    document.getElementById('viewModalPreview').style.display = 'none';
+    document.getElementById('viewModalImageArea').style.display = 'flex';
   });
 
+  // ── 背景クリックで閉じる ──
   window.addEventListener('click', (e) => {
-    if (e.target === articleModal) articleModal.style.display = 'none';
-    if (e.target === document.getElementById('editArticleModal')) {
-      document.getElementById('editArticleModal').style.display = 'none';
-    }
+    ['articleModal', 'editArticleModal', 'articleViewModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if (e.target === el) el.style.display = 'none';
+    });
   });
 
-  // 画像ピッカー共通処理
+  // ── 画像ピッカー ──
   function initPicker(pickerId, counterId, maxCount) {
     const picker = document.getElementById(pickerId);
     const counter = document.getElementById(counterId);
-    if (!picker) return;
+    if (!picker || !counter) return;
 
     picker.querySelectorAll('.picker-item').forEach(item => {
       item.addEventListener('click', () => {
         const checkbox = item.querySelector('.picker-checkbox');
-        const selected = picker.querySelectorAll('.picker-item.selected');
+        const selectedCount = picker.querySelectorAll('.picker-item.selected').length;
 
         if (item.classList.contains('selected')) {
           item.classList.remove('selected');
           checkbox.checked = false;
         } else {
-          if (selected.length >= maxCount) return;
+          if (selectedCount >= maxCount) return;
           item.classList.add('selected');
           checkbox.checked = true;
         }
 
         const newCount = picker.querySelectorAll('.picker-item.selected').length;
         counter.textContent = newCount;
-
-        // 4枚上限に達したら未選択を薄くする
         picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
           i.classList.toggle('disabled', newCount >= maxCount);
         });
@@ -417,18 +557,18 @@
   initPicker('imagePicker', 'selectedCount', 4);
   initPicker('editImagePicker', 'editSelectedCount', 4);
 
-  // 編集ボタン
+  // ── 編集ボタン ──
   document.querySelectorAll('.edit-article-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const id = btn.dataset.id;
-      const imageIds = btn.dataset.imageIds ? btn.dataset.imageIds.split(',') : [];
+      const imageIds = btn.dataset.imageIds ? btn.dataset.imageIds.split(',').filter(Boolean) : [];
 
       document.getElementById('editArticleTitle').value = btn.dataset.title;
       document.getElementById('editArticleContent').value = btn.dataset.content;
       document.getElementById('editArticleTags').value = btn.dataset.tags || '';
       document.getElementById('editArticleForm').action = `/articles/${id}`;
 
-      // 画像の選択状態を復元
       const picker = document.getElementById('editImagePicker');
       picker.querySelectorAll('.picker-item').forEach(item => {
         item.classList.remove('selected', 'disabled');
@@ -436,29 +576,93 @@
       });
 
       imageIds.forEach(imgId => {
-        const item = picker.querySelector(`[data-image-id="${imgId}"]`);
+        const item = picker.querySelector(`[data-image-id="${imgId.trim()}"]`);
         if (item) {
           item.classList.add('selected');
           item.querySelector('.picker-checkbox').checked = true;
         }
       });
 
-      const count = imageIds.length;
+      const count = picker.querySelectorAll('.picker-item.selected').length;
       document.getElementById('editSelectedCount').textContent = count;
       picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
         i.classList.toggle('disabled', count >= 4);
       });
 
-      document.getElementById('editArticleModal').style.display = 'block';
+      openModal('editArticleModal');
     });
   });
 
-  // 検索
+  // ── 削除ボタンの伝播を止める ──
+  document.querySelectorAll('.article-actions form').forEach(form => {
+    form.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  // ── 記事カードクリックで詳細モーダル ──
+  document.querySelectorAll('.article-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.article-actions')) return;
+
+      const title = card.querySelector('h3').textContent;
+      const content = card.querySelector('.article-content-preview').textContent;
+      const meta = card.querySelector('.article-meta').textContent;
+      const tagsEl = card.querySelector('.article-tags');
+
+      document.getElementById('viewModalTitle').textContent = title;
+      document.getElementById('viewModalContent').textContent = content;
+      document.getElementById('viewModalMeta').textContent = meta;
+
+      const tagsContainer = document.getElementById('viewModalTags');
+      tagsContainer.innerHTML = '';
+      if (tagsEl) {
+        tagsEl.querySelectorAll('.tag').forEach(tag => {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = tag.textContent;
+          tagsContainer.appendChild(span);
+        });
+      }
+
+      const imageArea = document.getElementById('viewModalImageArea');
+      imageArea.innerHTML = '';
+      imageArea.classList.remove('has-images');
+      imageArea.style.display = 'flex';
+
+      card.querySelectorAll('.article-thumb').forEach(thumb => {
+        const img = thumb.querySelector('img');
+        if (!img) return;
+        imageArea.classList.add('has-images');
+
+        const wrap = document.createElement('div');
+        wrap.className = 'view-modal-img-wrap';
+
+        const image = document.createElement('img');
+        image.src = img.src;
+        image.alt = '';
+
+        const fullUrl = thumb.dataset.fullUrl || img.src;
+        wrap.appendChild(image);
+        wrap.addEventListener('click', () => {
+          document.getElementById('viewModalPreviewImg').src = fullUrl;
+          document.getElementById('viewModalPreview').style.display = 'flex';
+          imageArea.style.display = 'none';
+        });
+
+        imageArea.appendChild(wrap);
+      });
+
+      document.getElementById('viewModalPreview').style.display = 'none';
+      openModal('articleViewModal');
+    });
+  });
+
+  // ── 検索 ──
   document.getElementById('searchArticles').addEventListener('input', (e) => {
     const q = e.target.value.toLowerCase();
     document.querySelectorAll('.article-card').forEach(card => {
-      const text = card.textContent.toLowerCase();
-      card.style.display = text.includes(q) ? 'block' : 'none';
+      card.style.display = card.textContent.toLowerCase().includes(q) ? 'block' : 'none';
     });
   });
+
+});
 </script>
