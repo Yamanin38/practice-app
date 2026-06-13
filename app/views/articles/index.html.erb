@@ -76,11 +76,11 @@
       <%= form_with url: articles_path, method: :post, id: "articleForm", scope: :article do |f| %>
         <div class="form-group">
             <%= f.label :title, "タイトル" %>
-            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください" %>
+            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください(40文字まで)", maxlength: 40 %>
         </div>
         <div class="form-group">
             <%= f.label :content, "本文" %>
-            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください" %>
+            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください(2000文字まで)", maxlength: 2000 %>
         </div>
         <div class="form-group">
             <%= f.label :tags, "タグ（カンマで区切る）" %>
@@ -163,11 +163,11 @@
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <div class="form-group">
           <label>タイトル</label>
-          <input type="text" name="article[title]" id="editArticleTitle" required>
+          <input type="text" name="article[title]" id="editArticleTitle" required maxlength="40">
         </div>
         <div class="form-group">
           <label>本文</label>
-          <textarea name="article[content]" id="editArticleContent" rows="6" required></textarea>
+          <textarea name="article[content]" id="editArticleContent" rows="6" required maxlength="2000"></textarea>
         </div>
         <div class="form-group">
           <label>タグ</label>
@@ -236,7 +236,7 @@
   .article-thumbnails {
     display: flex;
     gap: 4px;
-    background: #ddd;
+    background: #fff;
   }
 
   .article-thumb {
@@ -399,6 +399,8 @@
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 600;
+  line-height: 1;        /* ← 追加 */
+  display: inline-block; /* ← 追加 */
 }
 
 .article-actions .btn-secondary:hover {
@@ -486,23 +488,24 @@
   overflow: hidden;
   background: #fff;      /* f3f4f6 → fff */
   min-height: 0;
-  padding: 16px 16px 0;  /* ← 追加：画像外枠に余白 */
+  padding: 16px;  /* ← 追加：画像外枠に余白 */
 
   /* ▼ 追加：ギャラリー全体のサイズをここで決めます */
   aspect-ratio: 16 / 9; /* 全体を綺麗な横長に固定 */
   max-height: 600px;    /* PC表示時に大きくなりすぎないよう制限 */
+  box-sizing: border-box; /* ← 【追加】パディングのズレによる見切れを防ぐ */
 }
 
 .view-modal-hero.hero-1 { grid-template-columns: 1fr; }
 .view-modal-hero.hero-2 { grid-template-columns: 1fr 1fr; }
 .view-modal-hero.hero-3 { 
   grid-template-columns: 2fr 1fr; 
-  grid-template-rows: 1fr 1fr; /* ▼ 追加：右側の2枚を上下「1:1」で均等分割 */
+  grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2); /* ← 【修正】Safariの計算バグを回避 */
 }
 
 .view-modal-hero.hero-4 {
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr; /* ▼ 追加：上下「1:1」で均等分割して綺麗な2x2にする */
+  grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2); /* ← 【修正】Safariの計算バグを回避 */
   /* grid-auto-rows: auto; ← ★元のコードにあれば削除 */
   /* align-items: start;   ← ★元のコードにあれば削除 */
 }
@@ -512,6 +515,7 @@
 .view-hero-img-wrap {
   width: 100%;
   height: 100%;
+  min-height: 0; /* ← 【追加】画像が無理に押し広がるのを防ぐ */
   overflow: hidden;
   cursor: zoom-in;
   position: relative;
@@ -520,6 +524,9 @@
 }
 
 .view-hero-img-wrap img {
+  position: absolute; /* ← 【追加】画像が枠のサイズを押し広げるのを完全に防ぎます */
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover; /* ← 元のデザイン（枠を埋め尽くす）に戻す場合は cover にします */
@@ -758,6 +765,14 @@
   justify-content: center;
   align-items: center;
 }
+#editArticleContent {
+  resize: vertical;
+}
+
+#article_content {
+  resize: vertical;
+}
+
 </style>
 
 <script>
@@ -804,10 +819,7 @@ function closeModal(id) {
   });
 
   window.addEventListener('click', (e) => {
-  ['editArticleModal'].forEach(id => {
-    const el = document.getElementById(id);
-    if (e.target === el) el.style.display = 'none';
-  });
+  // editArticleModal の外側クリックで閉じる処理を削除
   const viewModal = document.getElementById('articleViewModal');
   if (e.target === viewModal) closeModal('articleViewModal');
 });
