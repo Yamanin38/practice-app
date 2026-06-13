@@ -76,11 +76,11 @@
       <%= form_with url: articles_path, method: :post, id: "articleForm", scope: :article do |f| %>
         <div class="form-group">
             <%= f.label :title, "タイトル" %>
-            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください(40文字まで)", maxlength: 40 %>
+            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください", data: { maxweight: 40 } %>
         </div>
         <div class="form-group">
             <%= f.label :content, "本文" %>
-            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください(2000文字まで)", maxlength: 2000 %>
+            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください", data: { maxweight: 2000 } %>
         </div>
         <div class="form-group">
             <%= f.label :tags, "タグ（カンマで区切る）" %>
@@ -163,11 +163,11 @@
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <div class="form-group">
           <label>タイトル</label>
-          <input type="text" name="article[title]" id="editArticleTitle" required maxlength="40">
+          <input type="text" name="article[title]" id="editArticleTitle" required data-maxweight="40">
         </div>
         <div class="form-group">
           <label>本文</label>
-          <textarea name="article[content]" id="editArticleContent" rows="6" required maxlength="2000"></textarea>
+          <textarea name="article[content]" id="editArticleContent" rows="6" required data-maxweight="2000"></textarea>
         </div>
         <div class="form-group">
           <label>タグ</label>
@@ -778,6 +778,35 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
 
+  // ── 文字数カウント（半角0.5文字換算） ──
+function calcWeight(str) {
+  let weight = 0;
+  for (const ch of str) {
+    weight += /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
+  }
+  return weight;
+}
+
+document.querySelectorAll('[data-maxweight]').forEach(input => {
+  const max = parseFloat(input.dataset.maxweight);
+
+  input.addEventListener('input', () => {
+    const weight = calcWeight(input.value);
+    if (weight > max) {
+      // 超えた分を削除
+      let trimmed = '';
+      let total = 0;
+      for (const ch of input.value) {
+        const w = /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
+        if (total + w > max) break;
+        trimmed += ch;
+        total += w;
+      }
+      input.value = trimmed;
+    }
+  });
+});
+
   // openModal / closeModal ヘルパーを更新
 function openModal(id) {
   const el = document.getElementById(id);
@@ -900,7 +929,7 @@ function closeModal(id) {
   // ── 記事カードクリックで詳細モーダル ──
 document.querySelectorAll('.article-card').forEach(card => {
   card.addEventListener('click', (e) => {
-    if (e.target.closest('.article-actions')) return;
+    if (e.target.closest('.edit-article-btn') || e.target.closest('.btn-danger') || e.target.closest('form')) return;
 
     const title   = card.dataset.fullTitle   || card.querySelector('h3').textContent;
     const content = card.dataset.fullContent || '';
@@ -937,6 +966,7 @@ document.querySelectorAll('.article-card').forEach(card => {
     const count  = thumbs.length;
 
     if (count > 0) {
+      imageArea.style.display = '';  // ← 追加
       imageArea.classList.add(`hero-${Math.min(count, 4)}`);
       thumbs.forEach((thumb, idx) => {
         if (idx >= 4) return;
@@ -960,6 +990,8 @@ document.querySelectorAll('.article-card').forEach(card => {
 
         imageArea.appendChild(wrap);
       });
+    } else {
+    imageArea.style.display = 'none';  // ← 追加
     }
 
     const modal = document.getElementById('articleViewModal');
