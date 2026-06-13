@@ -6,6 +6,11 @@ class ArticlesController < ApplicationController
   def index
     @articles = Article.includes(:user, :images).order(created_at: :desc)
     @all_images = Image.includes(:file_attachment).ordered_by_date
+    @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
+    # 日付絞り込み
+    if params[:date].present?
+      @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
+    end
   end
 
   def create

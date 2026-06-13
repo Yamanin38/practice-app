@@ -1,3 +1,16 @@
+<%#
+  ── バックエンド側で追加が必要な対応 ──
+  articles_controller.rb の index アクション内に以下を追加してください：
+
+  # 記事が存在する日付の一覧（カレンダー用）
+  @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
+
+  # 日付絞り込み
+  if params[:date].present?
+    @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
+  end
+%>
+
 <div class="container">
   <header class="page-header">
     <h1>記事</h1>
@@ -9,7 +22,32 @@
       <% if current_user %>
         <button class="btn btn-primary" id="newArticleBtn">新しい記事を投稿</button>
       <% end %>
-      <div class="filter-section">
+      <div class="filter-section-row">
+        <!-- ▼ カレンダーフィルター（検索ボックスの左側） -->
+        <div class="filter-section" id="articleFilterSection">
+          <%= form_with url: articles_path, method: :get, local: true, class: "date-filter-form", data: { turbo: false } do |f| %>
+            <button type="button" class="btn-cal-toggle" id="artCalToggleBtn">
+              📅 <span id="artCalToggleText"><%= params[:date].present? ? params[:date] : "日付で絞り込む" %></span>
+            </button>
+            <div class="calendar-filter" id="artCalendarFilter" style="display:none;">
+              <div class="calendar-header">
+                <button type="button" class="cal-nav" id="artCalPrev">&#8249;</button>
+                <span class="cal-title" id="artCalTitle"></span>
+                <button type="button" class="cal-nav" id="artCalNext">&#8250;</button>
+              </div>
+              <div class="calendar-weekdays">
+                <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+              </div>
+              <div class="calendar-days" id="artCalendarDays"></div>
+              <input type="hidden" name="date" id="artCalSelectedDate" value="<%= params[:date] %>">
+              <div class="calendar-actions">
+                <button type="button" class="btn-cal-clear" id="artCalClear">クリア</button>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <!-- ▲ カレンダーフィルターここまで -->
+
         <input type="text" placeholder="記事を検索..." id="searchArticles" class="search-input">
       </div>
     </div>
@@ -219,6 +257,151 @@
 </div>
 
 <style>
+  /* ── フィルター行（カレンダー＋検索） ── */
+  .filter-section-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ── カレンダーフィルター（ギャラリーページから流用） ── */
+  .filter-section {
+    position: relative;
+  }
+
+  .btn-cal-toggle {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #2c3e50;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    transition: background 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .btn-cal-toggle:hover {
+    background: #f0f4ff;
+    border-color: #3498db;
+    color: #3498db;
+  }
+
+  .btn-cal-toggle.active {
+    background: #f0f4ff;
+    border-color: #3498db;
+    color: #3498db;
+  }
+
+  .calendar-filter {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    width: 280px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 100;
+  }
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .cal-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #2c3e50;
+  }
+
+  .cal-nav {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #3498db;
+    padding: 0 8px;
+    line-height: 1;
+  }
+
+  .cal-nav:hover { color: #2980b9; }
+
+  .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .calendar-weekdays span:first-child { color: #e74c3c; }
+  .calendar-weekdays span:last-child  { color: #3498db; }
+
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    border-radius: 50%;
+    cursor: default;
+    color: #ccc;
+  }
+
+  .cal-day.has-image {
+    color: #2c3e50;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .cal-day.has-image:hover {
+    background: #ebf5fb;
+    color: #3498db;
+  }
+
+  .cal-day.selected {
+    background: #3498db;
+    color: white !important;
+  }
+
+  .cal-day.today {
+    border: 1px solid #3498db;
+  }
+
+  .calendar-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-cal-clear {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #666;
+  }
+
+  .btn-cal-clear:hover { background: #f5f5f5; }
+
+  /* ── 以下は元のスタイルそのまま ── */
   .articles-list {
     display: flex;
     flex-direction: column;
@@ -231,6 +414,7 @@
     border-radius: 8px;
     background: white;
     overflow: hidden;
+    cursor: pointer;
   }
 
   .article-thumbnails {
@@ -261,12 +445,21 @@
     margin: 0 0 10px 0;
     color: #2c3e50;
     font-size: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
   }
 
   .article-content-preview {
     color: #555;
-    white-space: pre-wrap;
     margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
   }
 
   .article-tags {
@@ -307,11 +500,8 @@
     font-weight: 600;
   }
 
-  .btn-danger:hover {
-    background: #c0392b;
-  }
+  .btn-danger:hover { background: #c0392b; }
 
-  /* 画像ピッカー */
   .image-picker {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
@@ -334,14 +524,8 @@
     transition: border-color 0.2s ease;
   }
 
-  .picker-item.selected {
-    border-color: #3498db;
-  }
-
-  .picker-item.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+  .picker-item.selected { border-color: #3498db; }
+  .picker-item.disabled { opacity: 0.4; cursor: not-allowed; }
 
   .picker-thumb {
     width: 100%;
@@ -366,9 +550,7 @@
     font-weight: bold;
   }
 
-  .picker-item.selected .picker-check {
-    display: flex;
-  }
+  .picker-item.selected .picker-check { display: flex; }
 
   .picker-hint {
     color: #888;
@@ -393,635 +575,652 @@
   }
 
   .article-actions .btn-secondary {
-  background-color: #ecf0f1;
-  color: #2c3e50;
-  border: 1px solid #bdc3c7;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1;        /* ← 追加 */
-  display: inline-block; /* ← 追加 */
-}
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-block;
+  }
 
-.article-actions .btn-secondary:hover {
-  background-color: #dde1e3;
-}
+  .article-actions .btn-secondary:hover { background-color: #dde1e3; }
 
-.article-card {
-  cursor: pointer;
-}
+  /* ─── 記事詳細モーダル ─── */
+  #articleViewModal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    background: rgba(10, 14, 23, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
 
-/* ─── 記事詳細モーダル ─── */
-#articleViewModal {
-  display: none;
-  position: fixed;
-  z-index: 2000;
-  inset: 0;
-  background: rgba(10, 14, 23, 0.75);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
+  #articleViewModal.modal-open { display: flex; }
 
-#articleViewModal.modal-open {
-  display: flex;
-}
+  .article-view-modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    width: 95vw;
+    max-width: 1200px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+    animation: modalRise 0.28s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+    scrollbar-width: none;
+  }
 
-.article-view-modal-content {
-  position: relative;
-  background: #fff;
-  border-radius: 16px;
-  width: 95vw;
-  max-width: 1200px;     /* 680px → 960px */
-  max-height: 92vh;      /* 90vh → 92vh */
-  overflow-y: auto;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
-  animation: modalRise 0.28s cubic-bezier(0.34, 1.3, 0.64, 1) both;
-  scrollbar-width: none;
-}
+  .article-view-modal-content::-webkit-scrollbar { display: none; }
 
-.article-view-modal-content::-webkit-scrollbar { display: none; }
+  @keyframes modalRise {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1);    }
+  }
 
-@keyframes modalRise {
-  from { opacity: 0; transform: translateY(24px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);    }
-}
+  .article-view-header {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 10;
+  }
 
-/* 閉じるボタン（右上に浮かす） */
-.article-view-header {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 10;
-}
+  .article-view-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: rgba(255,255,255,0.85);
+    color: #374151;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    backdrop-filter: blur(4px);
+    transition: background 0.15s, color 0.15s, transform 0.15s;
+  }
 
-.article-view-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  background: rgba(255,255,255,0.85);
-  color: #374151;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  backdrop-filter: blur(4px);
-  transition: background 0.15s, color 0.15s, transform 0.15s;
-}
+  .article-view-close:hover {
+    background: #1a1a2e;
+    color: #fff;
+    transform: rotate(90deg);
+  }
 
-.article-view-close:hover {
-  background: #1a1a2e;
-  color: #fff;
-  transform: rotate(90deg);
-}
+  .view-modal-hero {
+    width: 100%;
+    display: grid;
+    gap: 3px;
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+    background: #fff;
+    min-height: 0;
+    padding: 16px;
+    aspect-ratio: 16 / 9;
+    max-height: 600px;
+    box-sizing: border-box;
+  }
 
-/* ヒーロー画像グリッド */
-.view-modal-hero {
-  width: 100%;
-  display: grid;
-  gap: 3px;
-  border-radius: 16px 16px 0 0;
-  overflow: hidden;
-  background: #fff;      /* f3f4f6 → fff */
-  min-height: 0;
-  padding: 16px;  /* ← 追加：画像外枠に余白 */
+  .view-modal-hero.hero-1 { grid-template-columns: 1fr; }
+  .view-modal-hero.hero-2 { grid-template-columns: 1fr 1fr; }
+  .view-modal-hero.hero-3 {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2);
+  }
+  .view-modal-hero.hero-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2);
+  }
 
-  /* ▼ 追加：ギャラリー全体のサイズをここで決めます */
-  aspect-ratio: 16 / 9; /* 全体を綺麗な横長に固定 */
-  max-height: 600px;    /* PC表示時に大きくなりすぎないよう制限 */
-  box-sizing: border-box; /* ← 【追加】パディングのズレによる見切れを防ぐ */
-}
+  .view-modal-hero.hero-3 .view-hero-img-wrap:first-child { grid-row: 1 / 3; }
 
-.view-modal-hero.hero-1 { grid-template-columns: 1fr; }
-.view-modal-hero.hero-2 { grid-template-columns: 1fr 1fr; }
-.view-modal-hero.hero-3 { 
-  grid-template-columns: 2fr 1fr; 
-  grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2); /* ← 【修正】Safariの計算バグを回避 */
-}
+  .view-hero-img-wrap {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    cursor: zoom-in;
+    position: relative;
+    border-radius: 10px;
+  }
 
-.view-modal-hero.hero-4 {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: calc((100% - 3px) / 2) calc((100% - 3px) / 2); /* ← 【修正】Safariの計算バグを回避 */
-  /* grid-auto-rows: auto; ← ★元のコードにあれば削除 */
-  /* align-items: start;   ← ★元のコードにあれば削除 */
-}
+  .view-hero-img-wrap img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+    background: #f3f4f6;
+  }
 
-.view-modal-hero.hero-3 .view-hero-img-wrap:first-child { grid-row: 1 / 3; }
+  .view-hero-img-wrap:hover img { transform: scale(1.04); }
 
-.view-hero-img-wrap {
-  width: 100%;
-  height: 100%;
-  min-height: 0; /* ← 【追加】画像が無理に押し広がるのを防ぐ */
-  overflow: hidden;
-  cursor: zoom-in;
-  position: relative;
-  border-radius: 10px;
-  object-fit: contain;
-}
+  .view-modal-preview {
+    position: relative;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.view-hero-img-wrap img {
-  position: absolute; /* ← 【追加】画像が枠のサイズを押し広げるのを完全に防ぎます */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* ← 元のデザイン（枠を埋め尽くす）に戻す場合は cover にします */
-  display: block;
-  transition: transform 0.4s ease;
-  background: #f3f4f6;
-}
+  .preview-full-img {
+    max-width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    display: block;
+  }
 
-.view-hero-img-wrap:hover img { transform: scale(1.04); }
+  .preview-close-btn {
+    position: absolute;
+    top: 10px; right: 12px;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    line-height: 1;
+    transition: background 0.2s;
+  }
 
-/* フルプレビュー */
-.view-modal-preview {
-  position: relative;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .preview-close-btn:hover { background: rgba(255,255,255,0.2); }
 
-.preview-full-img {
-  max-width: 100%;
-  max-height: 420px;
-  object-fit: contain;
-  display: block;
-}
+  .view-modal-body {
+    padding: 28px 32px 36px;
+  }
 
-.preview-close-btn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  background: rgba(0,0,0,0.55);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  line-height: 1;
-  transition: background 0.2s;
-}
+  .view-modal-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
 
-.preview-close-btn:hover { background: rgba(255,255,255,0.2); }
+  .view-modal-author-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+  }
 
-/* 本文エリア */
-.view-modal-body {
-  padding: 28px 32px 36px;
-}
+  .view-modal-date {
+    font-size: 12px;
+    color: #9ca3af;
+    letter-spacing: 0.04em;
+  }
 
-/* メタ行（投稿者 + 日付） */
-.view-modal-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-}
+  .view-modal-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.35;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
 
-.view-modal-author-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  padding: 4px 12px;
-  border-radius: 20px;
-  letter-spacing: 0.02em;
-}
+  .view-modal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
 
-.view-modal-date {
-  font-size: 12px;
-  color: #9ca3af;
-  letter-spacing: 0.04em;
-}
+  .view-modal-tags .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6366f1;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
 
-/* タイトル */
-.view-modal-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: #111827;
-  line-height: 1.35;
-  margin: 0 0 16px;
-  letter-spacing: -0.02em;
-}
+  .view-modal-divider {
+    height: 1px;
+    background: linear-gradient(to right, #e5e7eb, transparent);
+    margin-bottom: 20px;
+  }
 
-/* タグ */
-.view-modal-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 20px;
-}
+  .view-modal-content-text {
+    font-size: 15px;
+    line-height: 1.85;
+    color: #374151;
+    white-space: pre-wrap;
+    margin: 0;
+  }
 
-.view-modal-tags .tag {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #6366f1;
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
+  #articleImageViewModal {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+  }
 
-/* 区切り線 */
-.view-modal-divider {
-  height: 1px;
-  background: linear-gradient(to right, #e5e7eb, transparent);
-  margin-bottom: 20px;
-}
+  #articleImageViewModal.active { display: flex; }
 
-/* 本文テキスト */
-.view-modal-content-text {
-  font-size: 15px;
-  line-height: 1.85;
-  color: #374151;
-  white-space: pre-wrap;
-  margin: 0;
-}
+  .article-image-view-modal-content {
+    background: rgba(15, 15, 15, 0.95);
+    border-radius: 12px;
+    padding: 0;
+    width: auto;
+    max-width: 90vw;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+    position: relative;
+    margin: auto;
+  }
 
-@media (max-width: 640px) {
-  .article-view-modal-content { border-radius: 12px; max-height: 95vh; }
-  .view-modal-body { padding: 20px 20px 28px; }
-  .view-modal-title { font-size: 20px; }
-  .view-modal-hero { max-height: 240px; }
-}
+  .modal-full-image {
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+  }
 
-.view-modal-body {
-  padding: 24px;
-}
+  .image-modal-body {
+    width: 100%;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-.view-modal-body h2 {
-  margin: 0 0 8px 0;
-  color: #2c3e50;
-  font-size: 22px;
-}
-
-.view-modal-content-text {
-  color: #444;
-  white-space: pre-wrap;
-  line-height: 1.8;
-  margin-top: 12px;
-}
-
-#articleImageViewModal {
-  display: none;
-  position: fixed;
-  z-index: 3000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
-  justify-content: center;
-  align-items: center;
-}
-
-#articleImageViewModal.active {
-  display: flex;
-}
-
-.article-image-view-modal-content {
-  background: rgba(15, 15, 15, 0.95);
-  border-radius: 12px;
-  padding: 0;
-  width: auto;
-  max-width: 90vw;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  overflow: hidden;
-  position: relative;
-  margin: auto;
-}
-
-#articleViewModal {
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#articleViewModal .article-view-modal-content {
-  margin: 0 auto;
-}
-
-.article-body h3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  white-space: normal;
-}
-
-.article-content-preview {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  white-space: normal;
-}
+  #editArticleContent { resize: vertical; }
+  #article_content    { resize: vertical; }
 
   @media (max-width: 768px) {
-    .article-thumb {
-      max-width: 50%;
-    }
-
-    .articles-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
+    .article-thumb { max-width: 50%; }
+    .articles-actions { flex-direction: column; align-items: stretch; }
+    .filter-section-row { flex-direction: row; flex-wrap: wrap; }
+    .view-modal-hero { max-height: 240px; }
+    .view-modal-body { padding: 20px 20px 28px; }
+    .view-modal-title { font-size: 20px; }
+    .article-view-modal-content { border-radius: 12px; max-height: 95vh; }
   }
-  /* ── 拡大モーダル内の画像本体 ── */
-.modal-full-image {
-  max-width: 100%;      /* 横幅がモーダルを超えないようにする */
-  max-height: 70vh;     /* スマホ画面の高さ（70%）を超えないように制限 */
-  width: auto;          /* 元の横幅を尊重 */
-  height: auto;         /* 元の高さを尊重 */
-  object-fit: contain;  /* 縦横比を絶対に崩さず、枠内に収める */
-  display: block;
-  margin: 0 auto;       /* 中央寄せ */
-}
-
-/* 画像を囲むボディ部分の余白調整 */
-.image-modal-body {
-  width: 100%;
-  padding: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#editArticleContent {
-  resize: vertical;
-}
-
-#article_content {
-  resize: vertical;
-}
-
 </style>
 
 <script>
+  // ── バックエンドから渡された記事投稿日リスト ──
+  // コントローラで @article_dates を設定してください（上部コメント参照）
+  const articleDates = <%= @article_dates.to_json.html_safe %>;
+  const articleDateSet = new Set(articleDates);
+
   document.addEventListener('DOMContentLoaded', () => {
 
-  // ── 文字数カウント（半角0.5文字換算） ──
-function calcWeight(str) {
-  let weight = 0;
-  for (const ch of str) {
-    weight += /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
-  }
-  return weight;
-}
-
-document.querySelectorAll('[data-maxweight]').forEach(input => {
-  const max = parseFloat(input.dataset.maxweight);
-
-  input.addEventListener('input', () => {
-    const weight = calcWeight(input.value);
-    if (weight > max) {
-      // 超えた分を削除
-      let trimmed = '';
-      let total = 0;
-      for (const ch of input.value) {
-        const w = /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
-        if (total + w > max) break;
-        trimmed += ch;
-        total += w;
+    // ── 文字数カウント（半角0.5文字換算） ──
+    function calcWeight(str) {
+      let weight = 0;
+      for (const ch of str) {
+        weight += /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
       }
-      input.value = trimmed;
+      return weight;
     }
-  });
-});
 
-  // openModal / closeModal ヘルパーを更新
-function openModal(id) {
-  const el = document.getElementById(id);
-  if (id === 'articleViewModal') {
-    el.style.display = 'flex';
-    el.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-  } else {
-    el.style.display = 'block';
-  }
-}
-function closeModal(id) {
-  const el = document.getElementById(id);
-  el.style.display = 'none';
-  el.classList.remove('modal-open');
-  if (id === 'articleViewModal') document.body.style.overflow = '';
-}
-
-  // ── 投稿モーダル ──
-  const newArticleBtn = document.getElementById('newArticleBtn');
-  if (newArticleBtn) {
-    newArticleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openModal('articleModal');
-    });
-  }
-  document.getElementById('closeArticleModal').addEventListener('click', () => closeModal('articleModal'));
-  document.getElementById('cancelArticle').addEventListener('click', () => closeModal('articleModal'));
-
-  // ── 編集モーダル ──
-  document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editArticleModal'));
-  document.getElementById('cancelEdit').addEventListener('click', () => closeModal('editArticleModal'));
-
-  // ── 詳細モーダル ──
-  document.getElementById('closeArticleViewModal').addEventListener('click', () => closeModal('articleViewModal'));
-  document.getElementById('closePreview').addEventListener('click', () => {
-    document.getElementById('viewModalPreview').style.display = 'none';
-    document.getElementById('viewModalImageArea').style.display = 'flex';
-  });
-
-  window.addEventListener('click', (e) => {
-  // editArticleModal の外側クリックで閉じる処理を削除
-  const viewModal = document.getElementById('articleViewModal');
-  if (e.target === viewModal) closeModal('articleViewModal');
-});
-
-  // ── 画像ピッカー ──
-  function initPicker(pickerId, counterId, maxCount) {
-    const picker = document.getElementById(pickerId);
-    const counter = document.getElementById(counterId);
-    if (!picker || !counter) return;
-
-    picker.querySelectorAll('.picker-item').forEach(item => {
-      item.addEventListener('click', () => {
-        const checkbox = item.querySelector('.picker-checkbox');
-        const selectedCount = picker.querySelectorAll('.picker-item.selected').length;
-
-        if (item.classList.contains('selected')) {
-          item.classList.remove('selected');
-          checkbox.checked = false;
-        } else {
-          if (selectedCount >= maxCount) return;
-          item.classList.add('selected');
-          checkbox.checked = true;
+    document.querySelectorAll('[data-maxweight]').forEach(input => {
+      const max = parseFloat(input.dataset.maxweight);
+      input.addEventListener('input', () => {
+        const weight = calcWeight(input.value);
+        if (weight > max) {
+          let trimmed = '', total = 0;
+          for (const ch of input.value) {
+            const w = /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
+            if (total + w > max) break;
+            trimmed += ch;
+            total += w;
+          }
+          input.value = trimmed;
         }
-
-        const newCount = picker.querySelectorAll('.picker-item.selected').length;
-        counter.textContent = newCount;
-        picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
-          i.classList.toggle('disabled', newCount >= maxCount);
-        });
       });
     });
-  }
 
-  initPicker('imagePicker', 'selectedCount', 4);
-  initPicker('editImagePicker', 'editSelectedCount', 4);
+    // ── モーダル開閉ヘルパー ──
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (id === 'articleViewModal') {
+        el.style.display = 'flex';
+        el.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        el.style.display = 'block';
+      }
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.style.display = 'none';
+      el.classList.remove('modal-open');
+      if (id === 'articleViewModal') document.body.style.overflow = '';
+    }
 
-  // ── 編集ボタン ──
-  document.querySelectorAll('.edit-article-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      const imageIds = btn.dataset.imageIds ? btn.dataset.imageIds.split(',').filter(Boolean) : [];
+    // ── 投稿モーダル ──
+    const newArticleBtn = document.getElementById('newArticleBtn');
+    if (newArticleBtn) {
+      newArticleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal('articleModal');
+      });
+    }
+    document.getElementById('closeArticleModal').addEventListener('click', () => closeModal('articleModal'));
+    document.getElementById('cancelArticle').addEventListener('click', () => closeModal('articleModal'));
 
-      document.getElementById('editArticleTitle').value = btn.dataset.title;
-      document.getElementById('editArticleContent').value = btn.dataset.content;
-      document.getElementById('editArticleTags').value = btn.dataset.tags || '';
-      document.getElementById('editArticleForm').action = `/articles/${id}`;
+    // ── 編集モーダル ──
+    document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editArticleModal'));
+    document.getElementById('cancelEdit').addEventListener('click', () => closeModal('editArticleModal'));
 
-      const picker = document.getElementById('editImagePicker');
+    // ── 詳細モーダル ──
+    document.getElementById('closeArticleViewModal').addEventListener('click', () => closeModal('articleViewModal'));
+    document.getElementById('closePreview').addEventListener('click', () => {
+      document.getElementById('viewModalPreview').style.display = 'none';
+      document.getElementById('viewModalImageArea').style.display = 'flex';
+    });
+
+    window.addEventListener('click', (e) => {
+      const viewModal = document.getElementById('articleViewModal');
+      if (e.target === viewModal) closeModal('articleViewModal');
+    });
+
+    // ── 画像ピッカー ──
+    function initPicker(pickerId, counterId, maxCount) {
+      const picker = document.getElementById(pickerId);
+      const counter = document.getElementById(counterId);
+      if (!picker || !counter) return;
+
       picker.querySelectorAll('.picker-item').forEach(item => {
-        item.classList.remove('selected', 'disabled');
-        item.querySelector('.picker-checkbox').checked = false;
-      });
+        item.addEventListener('click', () => {
+          const checkbox = item.querySelector('.picker-checkbox');
+          const selectedCount = picker.querySelectorAll('.picker-item.selected').length;
 
-      imageIds.forEach(imgId => {
-        const item = picker.querySelector(`[data-image-id="${imgId.trim()}"]`);
-        if (item) {
-          item.classList.add('selected');
-          item.querySelector('.picker-checkbox').checked = true;
-        }
-      });
+          if (item.classList.contains('selected')) {
+            item.classList.remove('selected');
+            checkbox.checked = false;
+          } else {
+            if (selectedCount >= maxCount) return;
+            item.classList.add('selected');
+            checkbox.checked = true;
+          }
 
-      const count = picker.querySelectorAll('.picker-item.selected').length;
-      document.getElementById('editSelectedCount').textContent = count;
-      picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
-        i.classList.toggle('disabled', count >= 4);
-      });
-
-      openModal('editArticleModal');
-    });
-  });
-
-  // ── 削除ボタンの伝播を止める ──
-  document.querySelectorAll('.article-actions form').forEach(form => {
-    form.addEventListener('click', (e) => e.stopPropagation());
-  });
-
-  // ── 記事カードクリックで詳細モーダル ──
-document.querySelectorAll('.article-card').forEach(card => {
-  card.addEventListener('click', (e) => {
-    if (e.target.closest('.edit-article-btn') || e.target.closest('.btn-danger') || e.target.closest('form')) return;
-
-    const title   = card.dataset.fullTitle   || card.querySelector('h3').textContent;
-    const content = card.dataset.fullContent || '';
-    const metaRaw = card.querySelector('.article-meta').textContent.trim();
-    // "username ・ YYYY年MM月DD日" を分割
-    const metaParts = metaRaw.split('・').map(s => s.trim());
-    const author = metaParts[0] || '';
-    const date   = metaParts[1] || '';
-    const tagsEl = card.querySelector('.article-tags');
-
-    document.getElementById('viewModalTitle').textContent   = title;
-    document.getElementById('viewModalContent').textContent = content;
-    document.getElementById('viewModalAuthorBadge').textContent = author;
-    document.getElementById('viewModalDate').textContent    = date;
-
-    const tagsContainer = document.getElementById('viewModalTags');
-    tagsContainer.innerHTML = '';
-    if (tagsEl) {
-      tagsEl.querySelectorAll('.tag').forEach(tag => {
-        const span = document.createElement('span');
-        span.className = 'tag';
-        span.textContent = tag.textContent;
-        tagsContainer.appendChild(span);
+          const newCount = picker.querySelectorAll('.picker-item.selected').length;
+          counter.textContent = newCount;
+          picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
+            i.classList.toggle('disabled', newCount >= maxCount);
+          });
+        });
       });
     }
 
-    // 画像ヒーローグリッド
-    const imageArea = document.getElementById('viewModalImageArea');
-    imageArea.innerHTML = '';
-    imageArea.className = 'view-modal-hero';
-    document.getElementById('viewModalPreview').style.display = 'none';
+    initPicker('imagePicker', 'selectedCount', 4);
+    initPicker('editImagePicker', 'editSelectedCount', 4);
 
-    const thumbs = card.querySelectorAll('.article-thumb');
-    const count  = thumbs.length;
+    // ── 編集ボタン ──
+    document.querySelectorAll('.edit-article-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const imageIds = btn.dataset.imageIds ? btn.dataset.imageIds.split(',').filter(Boolean) : [];
 
-    if (count > 0) {
-      imageArea.style.display = '';  // ← 追加
-      imageArea.classList.add(`hero-${Math.min(count, 4)}`);
-      thumbs.forEach((thumb, idx) => {
-        if (idx >= 4) return;
-        const img = thumb.querySelector('img');
-        if (!img) return;
+        document.getElementById('editArticleTitle').value = btn.dataset.title;
+        document.getElementById('editArticleContent').value = btn.dataset.content;
+        document.getElementById('editArticleTags').value = btn.dataset.tags || '';
+        document.getElementById('editArticleForm').action = `/articles/${id}`;
 
-        const fullUrl = thumb.dataset.fullUrl || img.src;
-        const wrap = document.createElement('div');
-        wrap.className = `view-hero-img-wrap hero-${Math.min(count, 4)}`;
-
-        const image = document.createElement('img');
-        image.src = img.src;
-        image.alt = '';
-        wrap.appendChild(image);
-
-        wrap.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          document.getElementById('articleModalImage').src = fullUrl;
-          document.getElementById('articleImageViewModal').classList.add('active');
+        const picker = document.getElementById('editImagePicker');
+        picker.querySelectorAll('.picker-item').forEach(item => {
+          item.classList.remove('selected', 'disabled');
+          item.querySelector('.picker-checkbox').checked = false;
         });
 
-        imageArea.appendChild(wrap);
+        imageIds.forEach(imgId => {
+          const item = picker.querySelector(`[data-image-id="${imgId.trim()}"]`);
+          if (item) {
+            item.classList.add('selected');
+            item.querySelector('.picker-checkbox').checked = true;
+          }
+        });
+
+        const count = picker.querySelectorAll('.picker-item.selected').length;
+        document.getElementById('editSelectedCount').textContent = count;
+        picker.querySelectorAll('.picker-item:not(.selected)').forEach(i => {
+          i.classList.toggle('disabled', count >= 4);
+        });
+
+        openModal('editArticleModal');
       });
+    });
+
+    // ── 削除ボタンの伝播を止める ──
+    document.querySelectorAll('.article-actions form').forEach(form => {
+      form.addEventListener('click', (e) => e.stopPropagation());
+    });
+
+    // ── 記事カードクリックで詳細モーダル ──
+    document.querySelectorAll('.article-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.edit-article-btn') || e.target.closest('.btn-danger') || e.target.closest('form')) return;
+
+        const title   = card.dataset.fullTitle   || card.querySelector('h3').textContent;
+        const content = card.dataset.fullContent || '';
+        const metaRaw = card.querySelector('.article-meta').textContent.trim();
+        const metaParts = metaRaw.split('・').map(s => s.trim());
+        const author = metaParts[0] || '';
+        const date   = metaParts[1] || '';
+        const tagsEl = card.querySelector('.article-tags');
+
+        document.getElementById('viewModalTitle').textContent   = title;
+        document.getElementById('viewModalContent').textContent = content;
+        document.getElementById('viewModalAuthorBadge').textContent = author;
+        document.getElementById('viewModalDate').textContent    = date;
+
+        const tagsContainer = document.getElementById('viewModalTags');
+        tagsContainer.innerHTML = '';
+        if (tagsEl) {
+          tagsEl.querySelectorAll('.tag').forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'tag';
+            span.textContent = tag.textContent;
+            tagsContainer.appendChild(span);
+          });
+        }
+
+        const imageArea = document.getElementById('viewModalImageArea');
+        imageArea.innerHTML = '';
+        imageArea.className = 'view-modal-hero';
+        document.getElementById('viewModalPreview').style.display = 'none';
+
+        const thumbs = card.querySelectorAll('.article-thumb');
+        const count  = thumbs.length;
+
+        if (count > 0) {
+          imageArea.style.display = '';
+          imageArea.classList.add(`hero-${Math.min(count, 4)}`);
+          thumbs.forEach((thumb, idx) => {
+            if (idx >= 4) return;
+            const img = thumb.querySelector('img');
+            if (!img) return;
+
+            const fullUrl = thumb.dataset.fullUrl || img.src;
+            const wrap = document.createElement('div');
+            wrap.className = `view-hero-img-wrap hero-${Math.min(count, 4)}`;
+
+            const image = document.createElement('img');
+            image.src = img.src;
+            image.alt = '';
+            wrap.appendChild(image);
+
+            wrap.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              document.getElementById('articleModalImage').src = fullUrl;
+              document.getElementById('articleImageViewModal').classList.add('active');
+            });
+
+            imageArea.appendChild(wrap);
+          });
+        } else {
+          imageArea.style.display = 'none';
+        }
+
+        const modal = document.getElementById('articleViewModal');
+        modal.style.display = 'flex';
+        modal.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    // ── 検索 ──
+    document.getElementById('searchArticles').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.article-card').forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+      });
+    });
+
+    // ────────────────────────────────────────
+    // ── 記事ページ用カレンダーフィルター ──
+    // ────────────────────────────────────────
+    const artCalToggleBtn    = document.getElementById('artCalToggleBtn');
+    const artCalendarFilter  = document.getElementById('artCalendarFilter');
+    const artSelectedInput   = document.getElementById('artCalSelectedDate');
+
+    let artCalYear, artCalMonth;
+    const today = new Date();
+
+    if (artSelectedInput.value) {
+      const d = new Date(artSelectedInput.value);
+      artCalYear  = d.getFullYear();
+      artCalMonth = d.getMonth();
     } else {
-    imageArea.style.display = 'none';  // ← 追加
+      artCalYear  = today.getFullYear();
+      artCalMonth = today.getMonth();
     }
 
-    const modal = document.getElementById('articleViewModal');
-    modal.style.display = 'flex';
-    modal.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-  });
-});
+    function renderArtCalendar() {
+      const title  = document.getElementById('artCalTitle');
+      const daysEl = document.getElementById('artCalendarDays');
 
-  // ── 検索 ──
-  document.getElementById('searchArticles').addEventListener('input', (e) => {
-    const q = e.target.value.toLowerCase();
-    document.querySelectorAll('.article-card').forEach(card => {
-      card.style.display = card.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+      title.textContent = `${artCalYear}年${artCalMonth + 1}月`;
+      daysEl.innerHTML  = '';
+
+      const firstDay    = new Date(artCalYear, artCalMonth, 1).getDay();
+      const daysInMonth = new Date(artCalYear, artCalMonth + 1, 0).getDate();
+      const selectedVal = artSelectedInput.value;
+
+      // トグルボタンのテキスト更新
+      document.getElementById('artCalToggleText').textContent = selectedVal || '日付で絞り込む';
+
+      // 空白埋め
+      for (let i = 0; i < firstDay; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${artCalYear}-${String(artCalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        div.textContent = d;
+
+        if (articleDateSet.has(dateStr)) {
+          div.classList.add('has-image'); // ギャラリーと同じクラス名を流用（「記事あり」の意味）
+          div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            artSelectedInput.value = dateStr;
+            renderArtCalendar();
+            // フォームをサブミットして絞り込む
+            artSelectedInput.closest('form').submit();
+          });
+        }
+
+        if (dateStr === selectedVal) div.classList.add('selected');
+
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (dateStr === todayStr) div.classList.add('today');
+
+        daysEl.appendChild(div);
+      }
+    }
+
+    // 前月・次月
+    document.getElementById('artCalPrev').addEventListener('click', () => {
+      artCalMonth--;
+      if (artCalMonth < 0) { artCalMonth = 11; artCalYear--; }
+      renderArtCalendar();
     });
+
+    document.getElementById('artCalNext').addEventListener('click', () => {
+      artCalMonth++;
+      if (artCalMonth > 11) { artCalMonth = 0; artCalYear++; }
+      renderArtCalendar();
+    });
+
+    // クリア
+    document.getElementById('artCalClear').addEventListener('click', () => {
+      artSelectedInput.value = '';
+      renderArtCalendar();
+      artSelectedInput.closest('form').submit();
+    });
+
+    // トグルボタン
+    artCalToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = artCalendarFilter.style.display !== 'none';
+      artCalendarFilter.style.display = isOpen ? 'none' : 'block';
+      artCalToggleBtn.classList.toggle('active', !isOpen);
+    });
+
+    // カレンダー外クリックで閉じる
+    document.addEventListener('click', (e) => {
+      if (!artCalendarFilter.contains(e.target) && e.target !== artCalToggleBtn) {
+        artCalendarFilter.style.display = 'none';
+        artCalToggleBtn.classList.remove('active');
+      }
+    });
+
+    // 初期描画
+    renderArtCalendar();
+
+  }); // DOMContentLoaded 終わり
+
+  // ── 記事用画像拡大モーダル ──
+  document.getElementById('closeArticleImageModal').addEventListener('click', () => {
+    document.getElementById('articleImageViewModal').classList.remove('active');
   });
 
-});
-
-document.getElementById('closeArticleImageModal').addEventListener('click', () => {
-  document.getElementById('articleImageViewModal').classList.remove('active');
-});
-
-document.getElementById('closeArticleImageModalBtn').addEventListener('click', () => {
-  document.getElementById('articleImageViewModal').classList.remove('active');
-});
-
-document.getElementById('articleImageViewModal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('articleImageViewModal')) {
+  document.getElementById('closeArticleImageModalBtn').addEventListener('click', () => {
     document.getElementById('articleImageViewModal').classList.remove('active');
-  }
-});
+  });
+
+  document.getElementById('articleImageViewModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('articleImageViewModal')) {
+      document.getElementById('articleImageViewModal').classList.remove('active');
+    }
+  });
 </script>
