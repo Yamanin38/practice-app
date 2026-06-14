@@ -13,6 +13,7 @@ Rails.application.routes.draw do
   patch "articles/:id", to: "articles#update", as: :article
   delete "articles/:id", to: "articles#destroy"
   get "about", to: "pages#about"
+  patch "about", to: "pages#update_about"
   get "recruitment", to: "pages#recruitment"
   get "rules", to: "pages#rules"
   get "admin/settings", to: "pages#users", as: :admin_settings

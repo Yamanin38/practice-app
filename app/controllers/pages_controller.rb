@@ -14,6 +14,21 @@ class PagesController < ApplicationController
   end
 
   def about
+    @team_profile = TeamProfile.singleton
+  end
+
+  def update_about
+    unless current_user&.admin?
+      redirect_to about_path, alert: "権限がありません"
+      return
+    end
+
+    @team_profile = TeamProfile.singleton
+    if @team_profile.update(content: params[:content])
+      redirect_to about_path, notice: "チーム概要を更新しました"
+    else
+      redirect_to about_path, alert: "更新に失敗しました"
+    end
   end
 
   def recruitment
