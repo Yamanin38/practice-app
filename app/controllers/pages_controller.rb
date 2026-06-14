@@ -32,9 +32,39 @@ class PagesController < ApplicationController
   end
 
   def recruitment
+    @team_profile = TeamProfile.singleton
+  end
+
+  def update_recruitment
+    unless current_user&.admin?
+      redirect_to recruitment_path, alert: "権限がありません"
+      return
+    end
+
+    @team_profile = TeamProfile.singleton
+    if @team_profile.update(recruitment_content: params[:content])
+      redirect_to recruitment_path, notice: "入隊案内を更新しました"
+    else
+      redirect_to recruitment_path, alert: "更新に失敗しました"
+    end
   end
 
   def rules
+    @team_profile = TeamProfile.singleton
+  end
+
+  def update_rules
+    unless current_user&.admin?
+      redirect_to rules_path, alert: "権限がありません"
+      return
+    end
+
+    @team_profile = TeamProfile.singleton
+    if @team_profile.update(rules_content: params[:content])
+      redirect_to rules_path, notice: "チーム規約を更新しました"
+    else
+      redirect_to rules_path, alert: "更新に失敗しました"
+    end
   end
 
   def users

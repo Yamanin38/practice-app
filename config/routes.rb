@@ -15,7 +15,9 @@ Rails.application.routes.draw do
   get "about", to: "pages#about"
   patch "about", to: "pages#update_about"
   get "recruitment", to: "pages#recruitment"
+  patch "recruitment", to: "pages#update_recruitment"
   get "rules", to: "pages#rules"
+  patch "rules", to: "pages#update_rules"
   get "admin/settings", to: "pages#users", as: :admin_settings
   get "contact", to: "pages#contact"
 
