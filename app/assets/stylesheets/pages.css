@@ -404,6 +404,10 @@ a.feature-card {
     position: relative;
   }
 
+  .main-content {
+  margin-top: 60px;
+}
+
   .navbar-logo a {
     font-size: 20px;
   }
@@ -569,6 +573,10 @@ a.feature-card {
   .navbar-container {
     padding: 10px 15px;
   }
+
+  .main-content {
+  margin-top: 60px;
+}
 
   .navbar-logo a {
     font-size: 18px;

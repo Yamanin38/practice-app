@@ -1,8 +1,12 @@
 <%
   require 'kramdown'
-  rendered_content = @team_profile&.content.present? \
-    ? Kramdown::Document.new(@team_profile.content).to_html \
-    : nil
+  if @team_profile&.content.present?
+    html = Kramdown::Document.new(@team_profile.content).to_html
+    # テーブルをスクロール可能なラッパーで囲む
+    rendered_content = html.gsub(/<table>/, '<div class="table-wrapper"><table>').gsub(/<\/table>/, '</table></div>')
+  else
+    rendered_content = nil
+  end
 %>
 
 <!-- EasyMDE CSS -->
@@ -55,7 +59,11 @@
     <div class="modal-content modal-lg">
       <div class="modal-header">
         <h2>チーム概要を編集</h2>
-        <button class="modal-close" id="closeEditAbout" aria-label="閉じる">&times;</button>
+        <div class="modal-header-actions">
+          <%# form属性で下のフォームIDと紐付け、ヘッダー内からでも送信可能 %>
+          <button type="submit" form="editAboutForm" class="btn btn-primary btn-sm" id="saveAboutBtn">保存する</button>
+          <button class="modal-close" id="closeEditAbout" aria-label="閉じる">&times;</button>
+        </div>
       </div>
       <div class="modal-body">
         <p class="editor-hint">マークダウン形式で入力できます</p>
@@ -64,18 +72,31 @@
             <%= f.text_area :content,
                 id: "aboutContent",
                 rows: 15,
-                placeholder: "チームの概要をマークダウンで入力してください...\n\n例:\n## チーム名\n\nここにチームの説明を書きます。\n\n- 特徴1\n- 特徴2",
+                placeholder: "チームの概要をマークダウンで入力してください...",
                 value: @team_profile&.content %>
-          </div>
-          <div class="form-actions">
-            <%= f.submit "保存する", class: "btn btn-primary" %>
-            <button type="button" class="btn btn-secondary" id="cancelAboutEdit">キャンセル</button>
           </div>
         <% end %>
       </div>
     </div>
   </div>
+
+  <!-- 変更破棄確認モーダル -->
+  <div class="modal" id="discardConfirmModal">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>変更を破棄しますか？</h2>
+      </div>
+      <div class="modal-body confirm-body">
+        <p>編集中の内容は保存されません。</p>
+        <div class="confirm-actions">
+          <button class="btn btn-danger" id="confirmDiscard">破棄する</button>
+          <button class="btn btn-back-to-edit" id="cancelDiscard">編集に戻る</button>
+        </div>
+      </div>
+    </div>
+  </div>
 <% end %>
+
 
 <style>
   /* ===== フラッシュメッセージ ===== */
@@ -116,15 +137,36 @@
     border-radius: 12px;
     line-height: 1.85;
     box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    /* はみ出し防止 */
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  @media (max-width: 600px) {
+    .about-content {
+      padding: 20px 16px;
+    }
   }
 
   /* ===== マークダウンスタイル ===== */
+  .markdown-body {
+    /* 長い単語・URLをすべて折り返す */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    word-wrap: break-word;
+    /* 子要素が親をはみ出さないように */
+    min-width: 0;
+    max-width: 100%;
+  }
   .markdown-body h1, .markdown-body h2, .markdown-body h3,
   .markdown-body h4, .markdown-body h5, .markdown-body h6 {
     margin-top: 1.5em;
     margin-bottom: 0.6em;
     font-weight: 700;
     line-height: 1.3;
+    /* 見出しも折り返す */
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   .markdown-body h1 { font-size: 2rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.3em; }
   .markdown-body h2 { font-size: 1.5rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.2em; }
@@ -134,25 +176,39 @@
   .markdown-body li { margin: 0.3em 0; }
   .markdown-body strong { font-weight: 700; }
   .markdown-body em { font-style: italic; }
+  .markdown-body img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
   .markdown-body code {
     background: #f3f4f6;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.9em;
     font-family: 'Courier New', monospace;
+    /* インラインコードは折り返す */
+    overflow-wrap: break-word;
+    word-break: break-all;
   }
   .markdown-body pre {
     background: #1e2937;
     color: #e5e7eb;
     padding: 16px 20px;
     border-radius: 8px;
+    /* コードブロックは横スクロール（折り返しなし） */
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     margin: 1em 0;
+    max-width: 100%;
   }
   .markdown-body pre code {
     background: none;
     color: inherit;
     padding: 0;
+    overflow-wrap: normal;
+    word-break: normal;
+    white-space: pre;
   }
   .markdown-body blockquote {
     border-left: 4px solid #6366f1;
@@ -161,16 +217,41 @@
     color: #6b7280;
     background: #f9fafb;
     border-radius: 0 6px 6px 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
-  .markdown-body a { color: #6366f1; text-decoration: underline; }
+  .markdown-body a {
+    color: #6366f1;
+    text-decoration: underline;
+    /* 長いURLも折り返す */
+    overflow-wrap: break-word;
+    word-break: break-all;
+  }
   .markdown-body hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
-  .markdown-body table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  /* テーブルはスマホで横スクロール */
+  .markdown-body .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1em 0;
+  }
+  .markdown-body table { border-collapse: collapse; width: 100%; min-width: 400px; }
   .markdown-body th, .markdown-body td {
     border: 1px solid #e5e7eb;
     padding: 8px 12px;
     text-align: left;
+    white-space: nowrap;
   }
   .markdown-body th { background: #f9fafb; font-weight: 600; }
+
+  @media (max-width: 600px) {
+    .markdown-body h1 { font-size: 1.5rem; }
+    .markdown-body h2 { font-size: 1.25rem; }
+    .markdown-body h3 { font-size: 1.1rem; }
+    .markdown-body pre {
+      padding: 12px 14px;
+      font-size: 0.85rem;
+    }
+  }
 
   /* ===== 空状態 ===== */
   .about-empty {
@@ -224,15 +305,26 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 28px;
+    padding: 16px 20px;
     border-bottom: 1px solid #e5e7eb;
     background: #f9fafb;
+    gap: 12px;
   }
   .modal-header h2 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #111827;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
   .modal-close {
     background: none;
@@ -246,6 +338,12 @@
     transition: background 0.15s, color 0.15s;
   }
   .modal-close:hover { background: #e5e7eb; color: #111827; }
+
+  /* 小さいボタン */
+  .btn-sm {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+  }
 
   .modal-body {
     padding: 24px 28px;
@@ -261,20 +359,55 @@
 
   .form-group { margin-bottom: 16px; }
 
-  .form-actions {
+  /* 確認モーダル */
+  .modal-sm {
+    max-width: 420px;
+    margin: 120px auto;
+  }
+  .confirm-body {
+    text-align: center;
+  }
+  .confirm-body p {
+    color: #6b7280;
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+  }
+  .confirm-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+    justify-content: center;
   }
+  .btn-danger {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-danger:hover { background: #dc2626; }
+
+  .btn-back-to-edit {
+    background: #2980b9;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-back-to-edit:hover { background: #1f6391; }
 
   /* EasyMDE 調整 */
   .EasyMDEContainer { border-radius: 8px; overflow: hidden; }
   .EasyMDEContainer .CodeMirror {
     border-radius: 0;
-    min-height: 320px;
+    min-height: 340px;
     font-size: 0.95rem;
   }
 </style>
@@ -284,20 +417,27 @@
 
 <script>
   <% if current_user&.admin? %>
-    const editAboutBtn    = document.getElementById('editAboutBtn');
-    const editAboutModal  = document.getElementById('editAboutModal');
-    const closeEditAbout  = document.getElementById('closeEditAbout');
-    const cancelAboutEdit = document.getElementById('cancelAboutEdit');
-    const textarea        = document.getElementById('aboutContent');
+    const editAboutBtn       = document.getElementById('editAboutBtn');
+    const editAboutModal     = document.getElementById('editAboutModal');
+    const closeEditAbout     = document.getElementById('closeEditAbout');
+    const discardConfirmModal = document.getElementById('discardConfirmModal');
+    const confirmDiscard     = document.getElementById('confirmDiscard');
+    const cancelDiscard      = document.getElementById('cancelDiscard');
+    const textarea           = document.getElementById('aboutContent');
+    const saveForm           = document.getElementById('editAboutForm');
 
+    // ページロード時点のサーバー保存済み内容（破棄時にここへ戻す）
+    const savedContent = textarea.value;
+    let originalContent = '';
     let easyMDE = null;
 
-    function openModal() {
+    // ===== モーダルを開く =====
+    function openEditModal() {
       editAboutModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
 
-      // EasyMDE を初回だけ初期化
       if (!easyMDE) {
+        // EasyMDE を初回だけ初期化
         easyMDE = new EasyMDE({
           element: textarea,
           spellChecker: false,
@@ -312,28 +452,80 @@
           ],
           status: ["lines", "words"],
         });
+      } else {
+        // 2回目以降: 常にサーバー保存済み内容にリセット（破棄後も正しく戻る）
+        easyMDE.value(savedContent);
       }
+
+      // 「変更あり」の基準をリセット
+      originalContent = easyMDE.value();
     }
 
-    function closeModal() {
+    // ===== 変更があるか判定 =====
+    function hasChanges() {
+      if (!easyMDE) return false;
+      return easyMDE.value() !== originalContent;
+    }
+
+    // ===== 編集モーダルを閉じる（確定） =====
+    function forceCloseEditModal() {
       editAboutModal.style.display = 'none';
       document.body.style.overflow = '';
     }
 
-    editAboutBtn.addEventListener('click', openModal);
-    closeEditAbout.addEventListener('click', closeModal);
-    cancelAboutEdit.addEventListener('click', closeModal);
+    // ===== 確認モーダルを開く =====
+    function openDiscardConfirm() {
+      discardConfirmModal.style.display = 'block';
+    }
 
-    window.addEventListener('click', (e) => {
-      if (e.target === editAboutModal) closeModal();
+    // ===== 確認モーダルを閉じる =====
+    function closeDiscardConfirm() {
+      discardConfirmModal.style.display = 'none';
+    }
+
+    // ===== ✕ ボタン: 変更があれば確認、なければ即閉じ =====
+    closeEditAbout.addEventListener('click', () => {
+      if (hasChanges()) {
+        openDiscardConfirm();
+      } else {
+        forceCloseEditModal();
+      }
     });
 
+    // ===== 確認モーダル: 「破棄する」 =====
+    confirmDiscard.addEventListener('click', () => {
+      if (easyMDE) {
+        easyMDE.value(savedContent); // 確実にリセットする
+        originalContent = savedContent;
+      }
+      closeDiscardConfirm();
+      forceCloseEditModal();
+    });
+
+    // ===== 確認モーダル: 「編集に戻る」 =====
+    cancelDiscard.addEventListener('click', () => {
+      closeDiscardConfirm();
+    });
+
+    // ===== 外クリックでは閉じない（両モーダル共通） =====
+    // ※ 何もしないことで閉じない挙動を実現
+    editAboutModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    discardConfirmModal.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // ===== Escape キーも無効化 =====
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && editAboutModal.style.display === 'block') closeModal();
+      if (e.key === 'Escape') e.preventDefault();
     });
 
-    // フォーム送信前に EasyMDE の値を textarea に同期
-    document.getElementById('editAboutForm').addEventListener('submit', () => {
+    // ===== 開くボタン =====
+    editAboutBtn.addEventListener('click', openEditModal);
+
+    // ===== フォーム送信前に EasyMDE の値を textarea に同期 =====
+    saveForm.addEventListener('submit', () => {
       if (easyMDE) easyMDE.codemirror.save();
     });
   <% end %>
