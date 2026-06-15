@@ -1,40 +1,98 @@
-<div class="container">
-  <section class="hero">
-    <div class="hero-content">
-      <h1>チームの紹介サイト</h1>
-      <p>オンラインゲームのチーム紹介兼思い出づくりサイト</p>
+<div class="portal-container">
+  <header class="portal-header">
+    <h1>チーム紹介ポータル</h1>
+    <p>オンラインゲームのチーム紹介兼思い出づくりサイト</p>
+  </header>
+
+  <div class="portal-layout">
+    <aside class="portal-sidebar">
+      <section class="sidebar-box">
+        <h2>MENU</h2>
+        <ul class="dense-menu">
+          <li><%= link_to "▶ チーム概要", about_path %></li>
+          <li><%= link_to "▶ 記事一覧", articles_path %></li>
+          <li><%= link_to "▶ ギャラリー", gallery_path %></li>
+          <li><%= link_to "▶ 入隊案内", recruitment_path %></li>
+          <li><%= link_to "▶ チーム規約", rules_path %></li>
+          <li><%= link_to "▶ お問い合わせ", contact_path %></li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="portal-main">
+      <div class="portal-grid">
+        
+        <section class="portal-panel main-panel">
+  <h2>最近の活動</h2>
+  <% if @latest_articles.any? %>
+    <ul class="news-list">
+      <% @latest_articles.each do |article| %>
+        <li class="portal-news-item">
+  <span class="news-date"><%= article.created_at.strftime('%Y/%m/%d') %></span>
+  
+  <%= link_to article.title, articles_path(open_article_id: article.id), 
+              class: "news-title-link", 
+              style: "color: var(--clr-primary, #e8a820); text-decoration: underline;",
+              data: { turbo: false } %>
+</li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="empty-text">新着記事はまだありません。</p>
+  <% end %>
+</section>
+
+        <section class="portal-panel photo-panel">
+          <h2>最新の写真</h2>
+          <div class="pickup-photo-container">
+            <% if @latest_image&.file&.attached? %>
+              <%= link_to gallery_path do %>
+                <%= image_tag @latest_image.file, class: "pickup-photo", alt: "最新の思い出写真" %>
+              <% end %>
+              <div class="photo-info">
+                <span>📷 <%= @latest_image.created_at.strftime('%Y/%m/%d') %> 投稿</span>
+              </div>
+            <% else %>
+              <div class="no-photo">
+                <p>思い出の一枚が<br>ここに表示されます</p>
+              </div>
+            <% end %>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="modal" id="articleViewModal">
+  <div class="article-view-modal-content">
+
+    <div id="viewModalImageArea" class="view-modal-hero"></div>
+
+    <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
+      <button class="preview-close-btn" id="closePreview">&times;</button>
+      <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
     </div>
-  </section>
 
-  <section class="features">
-    <div class="feature-grid">
-  <a href="/gallery" class="feature-card">
-    <h2>ギャラリー</h2>
-    <p>チームのメンバーが撮影した思い出の写真を投稿・閲覧できます。</p>
-  </a>
+    <div class="article-view-header">
+      <button class="article-view-close" id="closeArticleViewModal" aria-label="閉じる">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
 
-  <a href="/articles" class="feature-card">
-    <h2>記事</h2>
-    <p>チームの活動記録や思い出を記事として投稿・共有できます。</p>
-  </a>
+    <div class="view-modal-body">
+      <div class="view-modal-meta-row">
+        <span class="view-modal-author-badge" id="viewModalAuthorBadge"></span>
+        <span class="view-modal-date" id="viewModalDate"></span>
+      </div>
+      <h2 id="viewModalTitle" class="view-modal-title"></h2>
+      <div id="viewModalTags" class="view-modal-tags"></div>
+      <div class="view-modal-divider"></div>
+      <p id="viewModalContent" class="view-modal-content-text"></p>
+    </div>
 
-  <a href="/about" class="feature-card">
-    <h2>チーム概要</h2>
-    <p>チームの概要や紹介文をご覧ください。</p>
-  </a>
-
-  <a href="/recruitment" class="feature-card">
-    <h2>入隊案内</h2>
-    <p>チームへの入隊方法や募集要項を確認できます。</p>
-  </a>
-
-  <a href="/rules" class="feature-card">
-    <h2>チーム規約</h2>
-    <p>チームのルールと規約を確認できます。</p>
-  </a>
-
-  <a href="/contact" class="feature-card">
-    <h2>お問い合わせ</h2>
-    <p>ご質問やご不明な点はこちらからお問い合わせください。</p>
-  </a>
+  </div>
 </div>
