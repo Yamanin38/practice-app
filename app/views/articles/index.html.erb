@@ -270,41 +270,49 @@
   }
 
   .btn-cal-toggle {
-    background: white;
-    border: 1px solid #ddd;
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
+    border: 1px solid #5a3510;
     border-radius: 6px;
     padding: 10px 16px;
     font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    color: #2c3e50;
-    font-weight: 600;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    transition: background 0.2s ease;
+    color: #e8a820;
+    box-shadow:
+      0 1px 0 rgba(255,200,80,.12) inset,
+      0 3px 8px rgba(0,0,0,.5),
+      0 1px 0 rgba(0,0,0,.7);
+    transition: filter 0.2s ease;
     white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
   }
 
   .btn-cal-toggle:hover {
-    background: #f0f4ff;
-    border-color: #3498db;
-    color: #3498db;
+    filter: brightness(1.2);
+    border-color: #c8820a;
   }
 
   .btn-cal-toggle.active {
-    background: #f0f4ff;
-    border-color: #3498db;
-    color: #3498db;
+    background: linear-gradient(180deg, #c8820a 0%, #7a4800 100%);
+    border-color: #6a3e00;
+    color: #fff8e0;
+    box-shadow:
+      0 1px 0 rgba(255,200,80,.25) inset,
+      0 3px 10px rgba(0,0,0,.6);
   }
 
   .calendar-filter {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    background: white;
-    border: 1px solid #ddd;
+    background: linear-gradient(180deg, #2e1a00 0%, #1e1000 100%);
+    border: 1px solid #5a3510;
     border-radius: 8px;
-    padding: 12px;
+    padding: 14px;
     width: 280px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    box-shadow:
+      0 8px 24px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,200,80,.12);
     z-index: 100;
   }
 
@@ -316,34 +324,41 @@
   }
 
   .cal-title {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 15px;
-    color: #2c3e50;
+    color: #e8a820;
+    text-shadow: 0 1px 3px rgba(0,0,0,.5);
   }
 
   .cal-nav {
-    background: none;
-    border: none;
-    font-size: 22px;
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
+    border: 1px solid #5a3510;
+    border-radius: 4px;
+    font-size: 18px;
     cursor: pointer;
-    color: #3498db;
-    padding: 0 8px;
+    color: #e8a820;
+    padding: 2px 10px;
     line-height: 1;
+    box-shadow:
+      0 1px 0 rgba(255,200,80,.12) inset,
+      0 2px 4px rgba(0,0,0,.5);
+    transition: filter .15s;
   }
 
-  .cal-nav:hover { color: #2980b9; }
+  .cal-nav:hover { filter: brightness(1.3); }
 
   .calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     text-align: center;
     font-size: 12px;
-    color: #999;
+    font-weight: 700;
+    color: #7a5030;
     margin-bottom: 4px;
   }
 
-  .calendar-weekdays span:first-child { color: #e74c3c; }
-  .calendar-weekdays span:last-child  { color: #3498db; }
+  .calendar-weekdays span:first-child { color: #c05040; }
+  .calendar-weekdays span:last-child  { color: #8090c0; }
 
   .calendar-days {
     display: grid;
@@ -359,27 +374,28 @@
     font-size: 13px;
     border-radius: 50%;
     cursor: default;
-    color: #ccc;
+    color: #4a3020;
   }
 
   .cal-day.has-image {
-    color: #2c3e50;
+    color: #e8d5b0;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .cal-day.has-image:hover {
-    background: #ebf5fb;
-    color: #3498db;
+    background: rgba(200,130,10,.25);
+    color: #e8a820;
   }
 
   .cal-day.selected {
-    background: #3498db;
-    color: white !important;
+    background: linear-gradient(135deg, #c8820a, #7a4800);
+    color: #fff8e0 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,.5);
   }
 
   .cal-day.today {
-    border: 1px solid #3498db;
+    border: 1px solid #c8820a;
   }
 
   .calendar-actions {
@@ -390,16 +406,21 @@
   }
 
   .btn-cal-clear {
-    background: none;
-    border: 1px solid #ddd;
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
+    border: 1px solid #5a3510;
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
-    color: #666;
+    color: #a08060;
+    box-shadow:
+      0 1px 0 rgba(255,200,80,.08) inset,
+      0 2px 4px rgba(0,0,0,.4);
+    transition: filter .15s;
   }
 
-  .btn-cal-clear:hover { background: #f5f5f5; }
+  .btn-cal-clear:hover { filter: brightness(1.3); color: #e8d5b0; }
 
   /* ── 以下は元のスタイルそのまま ── */
   .articles-list {
@@ -410,17 +431,28 @@
   }
 
   .article-card {
-    border: 1px solid #ddd;
+    border: 1px solid #5a3510;
     border-radius: 8px;
-    background: white;
+    background: linear-gradient(180deg, #2e1a00 0%, #1e1000 100%);
     overflow: hidden;
     cursor: pointer;
+    box-shadow:
+      0 4px 16px rgba(0,0,0,.6),
+      inset 0 1px 0 rgba(255,200,80,.08);
+    transition: border-color .2s, box-shadow .2s;
+  }
+
+  .article-card:hover {
+    border-color: #c8820a;
+    box-shadow:
+      0 6px 24px rgba(0,0,0,.7),
+      inset 0 1px 0 rgba(255,200,80,.12);
   }
 
   .article-thumbnails {
     display: flex;
     gap: 4px;
-    background: #fff;
+    background: #150d00;
   }
 
   .article-thumb {
@@ -443,17 +475,18 @@
 
   .article-body h3 {
     margin: 0 0 10px 0;
-    color: #2c3e50;
+    color: #e8a820;
     font-size: 20px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     white-space: normal;
+    text-shadow: 0 1px 3px rgba(0,0,0,.5);
   }
 
   .article-content-preview {
-    color: #555;
+    color: #a08060;
     margin-bottom: 12px;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -470,16 +503,17 @@
   }
 
   .tag {
-    background: #ebf5fb;
-    color: #2980b9;
+    background: rgba(200,130,10,.18);
+    color: #e8a820;
+    border: 1px solid rgba(200,130,10,.35);
     padding: 3px 10px;
     border-radius: 12px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .article-meta {
-    color: #999;
+    color: #7a5030;
     font-size: 13px;
     margin-bottom: 12px;
   }
@@ -508,10 +542,11 @@
     gap: 8px;
     max-height: 280px;
     overflow-y: auto;
-    border: 1px solid #ddd;
+    border: 1px solid #5a3510;
     border-radius: 6px;
     padding: 10px;
-    background: #fafafa;
+    background: #150d00;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.5);
   }
 
   .picker-item {
@@ -524,7 +559,7 @@
     transition: border-color 0.2s ease;
   }
 
-  .picker-item.selected { border-color: #3498db; }
+  .picker-item.selected { border-color: #c8820a; }
   .picker-item.disabled { opacity: 0.4; cursor: not-allowed; }
 
   .picker-thumb {
