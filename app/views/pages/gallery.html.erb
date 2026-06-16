@@ -20,7 +20,10 @@
     <div class="calendar-filter" id="calendarFilter" style="display:none;">
       <div class="calendar-header">
         <button type="button" class="cal-nav" id="calPrev">&#8249;</button>
-        <span class="cal-title" id="calTitle"></span>
+        <span class="cal-title" id="calTitle">
+          <select id="calYearSelect" class="cal-year-select"></select>
+          <span id="calMonthText"></span>
+        </span>
         <button type="button" class="cal-nav" id="calNext">&#8250;</button>
       </div>
       <div class="calendar-weekdays">
@@ -399,19 +402,19 @@
 
   .gallery-overlay {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    padding: 15px;
-    color: white;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
-    gap: 10px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 10px;           /* パディングを少し狭めて文字の表示領域を広げます */
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;     /* 左寄せから中央寄せに変更します */
+  gap: 10px;
   }
 
   .gallery-item:hover .gallery-overlay {
@@ -420,7 +423,10 @@
 
   .upload-date {
     margin: 0;
-    font-size: 14px;
+  font-size: 11px;       /* 14pxから11〜12pxに小さくして枠内に収めやすくします */
+  white-space: nowrap;   /* 文字列が絶対に途中で改行されないようにします */
+  width: 100%;           /* 横幅いっぱいに広げます */
+  text-align: center;    /* 文字を中央寄せにします */
   }
 
   .placeholder {
@@ -816,6 +822,39 @@
       width: 100%;
     }
   }
+
+  /* カレンダーの年選択プルダウンのスタイル */
+.cal-year-select {
+  background-color: transparent;
+  color: inherit;
+  border: 1px solid var(--clr-border, #7a4818);
+  border-radius: 4px;
+  padding: 2px 24px 2px 8px; /* 右側は矢印用に少し広めに */
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  appearance: none; /* デフォルトの矢印を消す */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a820' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 14px;
+}
+
+.cal-year-select:focus {
+  outline: none;
+  border-color: var(--clr-primary, #e8a820);
+}
+
+.cal-year-select option {
+  background-color: var(--clr-surface, #3a2108);
+  color: var(--clr-text, #e8d5b0);
+}
+
+/* 月テキストの余白調整 */
+#calMonthText {
+  margin-left: 4px;
+}
 </style>
 
 <script>
@@ -824,6 +863,28 @@
     const uploadModal = document.getElementById('uploadModal');
     const closeModal = document.getElementById('closeModal');
     const dateFilter = document.querySelector('.date-filter');
+
+    // ▼▼ ここから追加: カレンダーの年プルダウンを生成する処理 ▼▼
+    // ── 修正後 ──
+    const yearSelect = document.getElementById('calYearSelect');
+    const todayYear = new Date().getFullYear();
+
+    // 【修正】年の選択範囲を広げました（例：2010年 〜 現在の年 + 10年（2036年）まで）
+    // 範囲をさらに広げたい場合は「2010」や「+ 10」の数値を調整してください
+    for (let y = 2026; y <= todayYear + 10; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.text = y + '年';
+      yearSelect.appendChild(option);
+    }
+
+    // プルダウンで年を変更したときの処理
+    yearSelect.addEventListener('change', function() {
+      // 【修正】変数名を実際のコードに合わせて `calYear` に変更しました
+      calYear = parseInt(this.value); 
+      renderCalendar(); // カレンダーを再描画
+    });
+    // ▲▲ ここまで追加 ▲▲
 
     if (uploadBtn && uploadModal) {
       uploadBtn.addEventListener('click', () => {
@@ -930,10 +991,13 @@ if (selectedDateInput.value) {
 }
 
 function renderCalendar() {
-  const title = document.getElementById('calTitle');
+  // ── 修正後 ──
   const daysEl = document.getElementById('calendarDays');
 
-  title.textContent = `${calYear}年${calMonth + 1}月`;
+  // 年プルダウンの選択状態を現在の表示年に合わせる
+  document.getElementById('calYearSelect').value = calYear;
+  // 月のテキストだけを更新する
+  document.getElementById('calMonthText').textContent = `${calMonth + 1}月`;
   daysEl.innerHTML = '';
 
   const firstDay = new Date(calYear, calMonth, 1).getDay();

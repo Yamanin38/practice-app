@@ -104,18 +104,43 @@
       </div>
 
       <div class="form-group" style="margin-bottom: 24px;">
-        <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">添付画像 (最大4枚)</label>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="color: var(--clr-text); margin: 0;">添付画像 (最大4枚)</label>
+          
+          <div class="filter-section" style="position: relative;">
+            <button type="button" class="btn-cal-toggle" id="calToggleBtn" style="padding: 4px 10px; font-size: 12px;">
+              📅 <span id="calToggleText">日付で絞り込む</span>
+            </button>
+            <div class="calendar-filter" id="calendarFilter" style="display:none; position: absolute; bottom: 100%; right: 0; margin-bottom: 8px; z-index: 10001;">
+              <div class="calendar-header">
+                <button type="button" class="cal-nav" id="calPrev">&#8249;</button>
+                <span class="cal-title" id="calTitle">
+                  <select id="calYearSelect" class="cal-year-select"></select>
+                  <span id="calMonthText"></span>
+                </span>
+                <button type="button" class="cal-nav" id="calNext">&#8250;</button>
+              </div>
+              <div class="calendar-weekdays">
+                <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+              </div>
+              <div class="calendar-days" id="calendarDays"></div>
+              <input type="hidden" id="calSelectedDate" value="">
+              <div class="calendar-actions">
+                <button type="button" class="btn-cal-clear" id="calClear">すべて表示</button>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <div class="image-selector-container" style="display: flex; gap: 10px; overflow-x: auto; padding: 4px 0;">
           <% if @all_images.present? %>
             <% @all_images.each do |image| %>
-              <%# 既にこの記事に紐付いている画像か判定 %>
               <% is_checked = @article.images.include?(image) %>
               
-              <label class="image-checkbox-label" style="cursor: pointer; position: relative; flex-shrink: 0;">
+              <label class="image-checkbox-label" data-date="<%= image.created_at.strftime('%Y-%m-%d') %>" style="cursor: pointer; position: relative; flex-shrink: 0;">
                 <input type="checkbox" name="image_ids[]" value="<%= image.id %>" 
                        <%= 'checked' if is_checked %> 
-                       style="display: none;" 
+                       style="display: none;"
                        onchange="toggleImageSelect(this)">
                 
                 <div class="image-thumbnail" style="width: 80px; height: 80px; border-radius: 4px; overflow: hidden; border: <%= is_checked ? '3px solid var(--clr-primary, #e8a820)' : '1px solid var(--clr-border)' %>; opacity: <%= is_checked ? '1' : '0.5' %>; transition: all 0.2s;">
@@ -253,6 +278,61 @@
     from { opacity: 0; transform: translate(-50%, -48%); }
     to { opacity: 1; transform: translate(-50%, -50%); }
   }
+
+  /* ======== カレンダー機能のスタイル ======== */
+  .btn-cal-toggle {
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
+    border: 1px solid #5a3510;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #e8a820;
+    box-shadow: 0 1px 0 rgba(255,200,80,.12) inset, 0 3px 8px rgba(0,0,0,.5), 0 1px 0 rgba(0,0,0,.7);
+    transition: filter 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-cal-toggle:hover { filter: brightness(1.2); border-color: #c8820a; }
+  .btn-cal-toggle.active {
+    background: linear-gradient(180deg, #c8820a 0%, #7a4800 100%);
+    border-color: #6a3e00; color: #fff8e0;
+  }
+  .calendar-filter {
+    background: linear-gradient(180deg, #2e1a00 0%, #1e1000 100%);
+    border: 1px solid #5a3510; border-radius: 8px; padding: 14px; width: 280px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,200,80,.12);
+  }
+  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cal-title { font-weight: 700; font-size: 15px; color: #e8a820; }
+  .cal-nav {
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
+    border: 1px solid #5a3510; border-radius: 4px; font-size: 18px;
+    cursor: pointer; color: #e8a820; padding: 2px 10px;
+  }
+  .cal-nav:hover { filter: brightness(1.3); }
+  .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: #7a5030; margin-bottom: 4px; }
+  .calendar-weekdays span:first-child { color: #c05040; }
+  .calendar-weekdays span:last-child { color: #8090c0; }
+  .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; border-radius: 50%; color: #4a3020; cursor: default; }
+  .cal-day.has-image { color: #e8d5b0; cursor: pointer; font-weight: 700; }
+  .cal-day.has-image:hover { background: rgba(200,130,10,.25); color: #e8a820; }
+  .cal-day.selected { background: linear-gradient(135deg, #c8820a, #7a4800); color: #fff8e0 !important; }
+  .cal-day.today { border: 1px solid #c8820a; }
+  .calendar-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+  .btn-cal-clear {
+    background: linear-gradient(180deg, #3a2108 0%, #241400 100%); border: 1px solid #5a3510;
+    border-radius: 4px; padding: 6px 14px; font-size: 13px; color: #a08060; cursor: pointer;
+  }
+  .btn-cal-clear:hover { filter: brightness(1.3); color: #e8d5b0; }
+  
+  .cal-year-select {
+    background-color: transparent; color: inherit; border: 1px solid #7a4818;
+    border-radius: 4px; padding: 2px 24px 2px 8px; font-weight: bold; cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a820' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 4px center; background-size: 14px;
+  }
+  .cal-year-select option { background-color: #3a2108; color: #e8d5b0; }
 </style>
 
 <script>
@@ -302,5 +382,134 @@
       thumbnail.style.opacity = "0.5"; // 非選択時は少し暗く
     }
   }
+
+  // ======== ここからカレンダー絞り込みの処理 ========
+  document.addEventListener('DOMContentLoaded', () => {
+    const calendarFilter = document.getElementById('calendarFilter');
+    const calToggleBtn = document.getElementById('calToggleBtn');
+    
+    // UIが存在しないページの場合は実行しない
+    if (!calendarFilter || !calToggleBtn) return;
+
+    // @all_images から画像が存在する日付のリスト（重複なし）を生成
+    const uploadDates = <%= raw @all_images.map { |img| img.created_at.strftime('%Y-%m-%d') }.uniq.to_json %>;
+    const uploadDateSet = new Set(uploadDates);
+
+    let calYear, calMonth;
+    const today = new Date();
+    const selectedDateInput = document.getElementById('calSelectedDate');
+
+    calYear = today.getFullYear();
+    calMonth = today.getMonth();
+
+    const yearSelect = document.getElementById('calYearSelect');
+    for (let y = 2026; y <= today.getFullYear() + 10; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.text = y + '年';
+      yearSelect.appendChild(option);
+    }
+
+    yearSelect.addEventListener('change', function() {
+      calYear = parseInt(this.value); 
+      renderCalendar();
+    });
+
+    function renderCalendar() {
+      const daysEl = document.getElementById('calendarDays');
+      document.getElementById('calYearSelect').value = calYear;
+      document.getElementById('calMonthText').textContent = `${calMonth + 1}月`;
+      daysEl.innerHTML = '';
+
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const selectedVal = selectedDateInput.value;
+
+      document.getElementById('calToggleText').textContent = selectedVal ? selectedVal : '日付で絞り込む';
+
+      for (let i = 0; i < firstDay; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        div.textContent = d;
+
+        if (uploadDateSet.has(dateStr)) {
+          div.classList.add('has-image');
+          div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedDateInput.value = dateStr;
+            renderCalendar();
+            filterImagesByDate(dateStr); // 絞り込み実行
+            calendarFilter.style.display = 'none';
+            calToggleBtn.classList.remove('active');
+          });
+        }
+
+        if (dateStr === selectedVal) div.classList.add('selected');
+
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        if (dateStr === todayStr) div.classList.add('today');
+
+        daysEl.appendChild(div);
+      }
+    }
+
+    // 表示切り替えロジック（AjaxではなくDOMの表示・非表示を切り替える）
+    function filterImagesByDate(dateStr) {
+      const labels = document.querySelectorAll('.image-checkbox-label');
+      
+      labels.forEach(label => {
+        // 対象の日付と一致するか、日付指定がない(クリア状態)なら表示する
+        if (!dateStr || label.dataset.date === dateStr) {
+          label.style.display = '';
+        } else {
+          label.style.display = 'none';
+        }
+      });
+    }
+
+    document.getElementById('calPrev').addEventListener('click', () => {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    });
+
+    document.getElementById('calNext').addEventListener('click', () => {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    });
+
+    // クリアボタン
+    document.getElementById('calClear').addEventListener('click', () => {
+      selectedDateInput.value = '';
+      renderCalendar();
+      filterImagesByDate(''); // 全て表示
+      calendarFilter.style.display = 'none';
+      calToggleBtn.classList.remove('active');
+    });
+
+    calToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = calendarFilter.style.display !== 'none';
+      calendarFilter.style.display = isOpen ? 'none' : 'block';
+      calToggleBtn.classList.toggle('active', !isOpen);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!calendarFilter.contains(e.target) && e.target !== calToggleBtn) {
+        calendarFilter.style.display = 'none';
+        calToggleBtn.classList.remove('active');
+      }
+    });
+
+    renderCalendar();
+  });
 
 </script>

@@ -18,7 +18,10 @@
             <div class="calendar-filter" id="artCalendarFilter" style="display:none;">
               <div class="calendar-header">
                 <button type="button" class="cal-nav" id="artCalPrev">&#8249;</button>
-                <span class="cal-title" id="artCalTitle"></span>
+                <span class="cal-title" id="artCalTitle">
+                  <select id="artCalYearSelect" class="cal-year-select"></select>
+                  <span id="artCalMonthText"></span>
+                </span>
                 <button type="button" class="cal-nav" id="artCalNext">&#8250;</button>
               </div>
               <div class="calendar-weekdays">
@@ -39,7 +42,7 @@
     <div class="articles-list" id="articlesList">
       <% if @articles.any? %>
         <% @articles.each do |article| %>
-          <div class="article-card" data-article-id="<%= article.id %>" data-full-title="<%= article.title %>" data-full-content="<%= article.content %>">
+          <div class="article-card" data-url="<%= article_path(article) %>">
             <% if article.images.any? %>
               <div class="article-thumbnails">
                 <% article.images.first(4).each do |img| %>
@@ -142,33 +145,6 @@
     </div>
   </div>
 
-  <div class="modal" id="articleViewModal">
-    <div class="article-view-modal-content">
-      <div id="viewModalImageArea" class="view-modal-hero"></div>
-      <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
-        <button class="preview-close-btn" id="closePreview">&times;</button>
-        <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
-      </div>
-      <div class="article-view-header">
-        <button class="article-view-close" id="closeArticleViewModal" aria-label="閉じる">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-      <div class="view-modal-body">
-        <div class="view-modal-meta-row">
-          <span class="view-modal-author-badge" id="viewModalAuthorBadge"></span>
-          <span class="view-modal-date" id="viewModalDate"></span>
-        </div>
-        <h2 id="viewModalTitle" class="view-modal-title"></h2>
-        <div id="viewModalTags" class="view-modal-tags"></div>
-        <div class="view-modal-divider"></div>
-        <p id="viewModalContent" class="view-modal-content-text"></p>
-      </div>
-    </div>
-  </div>
-
   <div class="modal" id="editArticleModal">
     <div class="modal-content modal-lg">
       <span class="close" id="closeEditModal">&times;</span>
@@ -220,20 +196,6 @@
           <button type="submit" class="btn btn-primary">更新</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <div class="modal" id="articleImageViewModal">
-    <div class="modal-content article-image-view-modal-content">
-      <div class="image-modal-header">
-        <span class="close" id="closeArticleImageModal">&times;</span>
-      </div>
-      <div class="image-modal-body">
-        <img id="articleModalImage" src="" alt="拡大画像" class="modal-full-image">
-      </div>
-      <div class="image-modal-footer">
-        <button class="btn btn-secondary" id="closeArticleImageModalBtn">閉じる</button>
-      </div>
     </div>
   </div>
 </div>
@@ -920,6 +882,38 @@
   justify-content: center;
   padding: 0;
 }
+
+/* カレンダーの年選択プルダウンのスタイル（共通） */
+.cal-year-select {
+  background-color: transparent;
+  color: inherit;
+  border: 1px solid var(--clr-border, #7a4818);
+  border-radius: 4px;
+  padding: 2px 24px 2px 8px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a820' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 14px;
+}
+
+.cal-year-select:focus {
+  outline: none;
+  border-color: var(--clr-primary, #e8a820);
+}
+
+.cal-year-select option {
+  background-color: var(--clr-surface, #3a2108);
+  color: var(--clr-text, #e8d5b0);
+}
+
+#artCalMonthText, #calMonthText {
+  margin-left: 4px;
+}
 </style>
 
 <script>
@@ -983,23 +977,11 @@
       });
     }
     document.getElementById('closeArticleModal').addEventListener('click', () => closeModal('articleModal'));
-    document.getElementById('cancelArticle').addEventListener('click', () => closeModal('articleModal'));
+    document.getElementById('cancelArticleBtn').addEventListener('click', () => closeModal('articleModal'));
 
     // ── 編集モーダル ──
     document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editArticleModal'));
     document.getElementById('cancelEdit').addEventListener('click', () => closeModal('editArticleModal'));
-
-    // ── 詳細モーダル ──
-    document.getElementById('closeArticleViewModal').addEventListener('click', () => closeModal('articleViewModal'));
-    document.getElementById('closePreview').addEventListener('click', () => {
-      document.getElementById('viewModalPreview').style.display = 'none';
-      document.getElementById('viewModalImageArea').style.display = 'flex';
-    });
-
-    window.addEventListener('click', (e) => {
-      const viewModal = document.getElementById('articleViewModal');
-      if (e.target === viewModal) closeModal('articleViewModal');
-    });
 
     // ── 画像ピッカー ──
     function initPicker(pickerId, counterId, maxCount) {
@@ -1074,78 +1056,18 @@
       form.addEventListener('click', (e) => e.stopPropagation());
     });
 
-    // ── 記事カードクリックで詳細モーダル ──
+    // ── 記事カードクリックで詳細ページへ遷移 ──
     document.querySelectorAll('.article-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.edit-article-btn') || e.target.closest('.btn-danger') || e.target.closest('form')) return;
+    card.addEventListener('click', (e) => {
+      // ★ 編集ボタン、削除ボタン、またはフォーム内の要素（チェックボックス等）がクリックされた場合は、詳細ページへの遷移を完全に無視する
+      if (e.target.closest('.edit-article-btn') || e.target.closest('.btn-danger') || e.target.closest('form') || e.target.closest('.modal')) {
+        return; 
+      }
 
-        const title   = card.dataset.fullTitle   || card.querySelector('h3').textContent;
-        const content = card.dataset.fullContent || '';
-        const metaRaw = card.querySelector('.article-meta').textContent.trim();
-        const metaParts = metaRaw.split('・').map(s => s.trim());
-        const author = metaParts[0] || '';
-        const date   = metaParts[1] || '';
-        const tagsEl = card.querySelector('.article-tags');
-
-        document.getElementById('viewModalTitle').textContent   = title;
-        document.getElementById('viewModalContent').textContent = content;
-        document.getElementById('viewModalAuthorBadge').textContent = author;
-        document.getElementById('viewModalDate').textContent    = date;
-
-        const tagsContainer = document.getElementById('viewModalTags');
-        tagsContainer.innerHTML = '';
-        if (tagsEl) {
-          tagsEl.querySelectorAll('.tag').forEach(tag => {
-            const span = document.createElement('span');
-            span.className = 'tag';
-            span.textContent = tag.textContent;
-            tagsContainer.appendChild(span);
-          });
-        }
-
-        const imageArea = document.getElementById('viewModalImageArea');
-        imageArea.innerHTML = '';
-        imageArea.className = 'view-modal-hero';
-        document.getElementById('viewModalPreview').style.display = 'none';
-
-        const thumbs = card.querySelectorAll('.article-thumb');
-        const count  = thumbs.length;
-
-        if (count > 0) {
-          imageArea.style.display = '';
-          imageArea.classList.add(`hero-${Math.min(count, 4)}`);
-          thumbs.forEach((thumb, idx) => {
-            if (idx >= 4) return;
-            const img = thumb.querySelector('img');
-            if (!img) return;
-
-            const fullUrl = thumb.dataset.fullUrl || img.src;
-            const wrap = document.createElement('div');
-            wrap.className = `view-hero-img-wrap hero-${Math.min(count, 4)}`;
-
-            const image = document.createElement('img');
-            image.src = img.src;
-            image.alt = '';
-            wrap.appendChild(image);
-
-            wrap.addEventListener('click', (ev) => {
-              ev.stopPropagation();
-              document.getElementById('articleModalImage').src = fullUrl;
-              document.getElementById('articleImageViewModal').classList.add('active');
-            });
-
-            imageArea.appendChild(wrap);
-          });
-        } else {
-          imageArea.style.display = 'none';
-        }
-
-        const modal = document.getElementById('articleViewModal');
-        modal.style.display = 'flex';
-        modal.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-      });
+      // 設定したデータ属性からURLを取得し、show.html.erb へ遷移する
+      window.location.href = card.dataset.url;
     });
+  });
 
     // ── 検索 ──
     document.getElementById('searchArticles').addEventListener('input', (e) => {
@@ -1175,10 +1097,13 @@
     }
 
     function renderArtCalendar() {
-      const title  = document.getElementById('artCalTitle');
       const daysEl = document.getElementById('artCalendarDays');
 
-      title.textContent = `${artCalYear}年${artCalMonth + 1}月`;
+      // 【変更】年プルダウンの選択状態を現在の表示年に合わせる
+      document.getElementById('artCalYearSelect').value = artCalYear;
+      // 【変更】月のテキストだけを更新する
+      document.getElementById('artCalMonthText').textContent = `${artCalMonth + 1}月`;
+      
       daysEl.innerHTML  = '';
 
       const firstDay    = new Date(artCalYear, artCalMonth, 1).getDay();
@@ -1221,6 +1146,27 @@
       }
     }
 
+    // ★★★ ここに貼り付けます ★★★
+    // ── 記事カレンダー用の年プルダウンを生成する処理 ──
+    const artYearSelect = document.getElementById('artCalYearSelect');
+    if (artYearSelect) {
+      const todayYearForArt = new Date().getFullYear();
+      // 2026年から現在の年+10年までを選択肢として追加
+      for (let y = 2026; y <= todayYearForArt + 10; y++) {
+        const option = document.createElement('option');
+        option.value = y;
+        option.text = y + '年';
+        artYearSelect.appendChild(option);
+      }
+
+      // プルダウンで年を変更したときの処理
+      artYearSelect.addEventListener('change', function() {
+        artCalYear = parseInt(this.value); // 選択された年を代入
+        renderArtCalendar(); // カレンダーを再描画
+      });
+    }
+    // ★★★ ここまで ★★★
+
     // 前月・次月
     document.getElementById('artCalPrev').addEventListener('click', () => {
       artCalMonth--;
@@ -1261,22 +1207,6 @@
     renderArtCalendar();
 
   }); // DOMContentLoaded 終わり
-
-  // ── 記事用画像拡大モーダル ──
-  document.getElementById('closeArticleImageModal').addEventListener('click', () => {
-    document.getElementById('articleImageViewModal').classList.remove('active');
-  });
-
-  document.getElementById('closeArticleImageModalBtn').addEventListener('click', () => {
-    document.getElementById('articleImageViewModal').classList.remove('active');
-  });
-
-  document.getElementById('articleImageViewModal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('articleImageViewModal')) {
-      document.getElementById('articleImageViewModal').classList.remove('active');
-    }
-
-  });
 
    // 画像選択のチェックボックスを切り替えたときのスタイル変更
   function toggleImageSelect(checkbox) {
