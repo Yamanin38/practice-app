@@ -905,6 +905,39 @@
     .view-modal-title { font-size: 20px; }
     .article-view-modal-content { border-radius: 12px; max-height: 95vh; }
   }
+
+#articleModal .modal-content > h2,
+#editArticleModal .modal-content > h2 {
+  padding: 28px 36px 0;
+}
+
+#articleModal .modal-content > form,
+#editArticleModal .modal-content > form {
+  padding: 20px 36px 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 投稿・編集モーダルの閉じるボタンを右上に固定 */
+#articleModal .modal-content,
+#editArticleModal .modal-content {
+  position: relative;
+}
+
+#articleModal .modal-content > .close,
+#editArticleModal .modal-content > .close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 10;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
 </style>
 
 <script>

@@ -1517,6 +1517,19 @@ a.feature-card {
   .container { padding: 0 14px; }
 }
 
+#articleFilterSection .calendar-filter {
+  z-index: 1500 !important;
+}
+
+.page-content {
+  overflow: visible !important;
+}
+
+.articles-actions {
+  position: relative;
+  z-index: 1500;
+}
+
 /* ============================================================
    DOOR OPENING ANIMATION
    ============================================================ */
