@@ -1,6 +1,7 @@
 class ArticlesController < ApplicationController
   before_action :authenticate_user!, only: [:create, :update, :destroy]
-  before_action :set_article, only: [:update, :destroy]
+  # ⭕【修正1】onlyに :show を追加して、詳細ページでも @article を取得できるようにします
+  before_action :set_article, only: [:show, :update, :destroy]
   before_action :authorize_owner!, only: [:update, :destroy]
 
   def index
@@ -11,6 +12,13 @@ class ArticlesController < ApplicationController
     if params[:date].present?
       @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
     end
+  end
+
+  # ⭕【修正2】private の中にあった show を、通常のアクション（public）の位置へ移動
+  def show
+    # これで @article が正しく入った状態で、Kramdown の処理が実行されます
+    markdown_text = @article.content || ""
+    @html_content = Kramdown::Document.new(markdown_text).to_html
   end
 
   def create
@@ -40,13 +48,14 @@ class ArticlesController < ApplicationController
     redirect_to articles_path, notice: "記事を削除しました"
   end
 
+  # ── ここから下はコントローラ内部だけで使う秘密のメソッド（private） ──
   private
 
   def article_params
-  params.require(:article).permit(:title, :content, :tags)
-    rescue ActionController::ParameterMissing
+    params.require(:article).permit(:title, :content, :tags)
+  rescue ActionController::ParameterMissing
     params.permit(:title, :content, :tags)
-    end
+  end
 
   def attach_images(article)
     image_ids = params[:image_ids].to_a.first(4)

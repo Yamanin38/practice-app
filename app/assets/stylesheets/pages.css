@@ -887,13 +887,14 @@ a.feature-card {
    ============================================================ */
 .about-view { margin-top: 8px; }
 
+/* about-content: 透明・枠なし。page-content のキャンバス背景をそのまま活かす */
 .about-content {
   padding: 24px 40px;
-  background: var(--clr-surface);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-lg);
+  background: transparent;
+  border: none;
+  border-radius: 0;
   line-height: 1.85;
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   overflow: hidden;
   min-width: 0;
   position: relative;

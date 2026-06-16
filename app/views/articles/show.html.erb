@@ -1,0 +1,155 @@
+<div class="container main-content">
+  
+  <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+    <%= link_to "◀ トップページ", root_path, class: "btn btn-secondary btn-sm" %>
+    <%= link_to "◀ 記事一覧", articles_path, class: "btn btn-secondary btn-sm" %>
+  </div>
+
+  <article class="page-content" style="padding: 40px;">
+    
+    <header style="margin-bottom: 30px; border-bottom: 1px solid var(--clr-border); padding-bottom: 20px;">
+      
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <span class="user-role member">
+          <%= @article.user.username %>
+        </span>
+        <span style="color: var(--clr-text-muted); font-size: 14px; font-family: monospace;">
+          <%= @article.created_at.strftime('%Y/%m/%d %H:%M') %>
+        </span>
+      </div>
+      
+      <h1 style="font-family: var(--font-heading); color: #2e1a00; font-size: 32px; line-height: 1.4; margin-bottom: 16px; text-shadow: 0 1px 1px rgba(255,255,255,0.8);">
+        <%= @article.title %>
+      </h1>
+
+      <%# 修正: any? を削除し、present? だけで文字が存在するか判定します %>
+      <% if @article.tags.present? %>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          
+          <%# 修正: 文字列をカンマ(,)で分割して、1つずつ取り出します %>
+          <% @article.tags.split(',').each do |tag_name| %>
+            
+            <%# 余白を削り、空っぽのタグがあればスキップする安全対策 %>
+            <% cleaned_tag = tag_name.strip %>
+            <% next if cleaned_tag.blank? %>
+            
+            <span style="background: rgba(184, 114, 10, 0.15); color: #5a3510; border: 1px solid rgba(184, 114, 10, 0.4); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700;">
+              #<%= cleaned_tag %>
+            </span>
+          <% end %>
+          
+        </div>
+      <% end %>
+    </header>
+
+    <%# 修正1: attached? ではなく、データが存在するかを any? で判定します %>
+    <% if @article.images.any? %>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 36px;">
+        <% @article.images.each do |image| %>
+          <div style="border: 1px solid var(--clr-border); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-inset); background: #120a00;">
+            
+            <% if image.file_attachment.present? %>
+              <%# onclickを追加し、クリック時に画像のURL(this.src)をモーダルに渡す %>
+              <%= image_tag image.file_attachment, 
+                    style: "width: 100%; height: 200px; object-fit: cover; display: block; cursor: zoom-in; transition: filter 0.2s;", 
+                    onmouseover: "this.style.filter='brightness(1.15)'",
+                    onmouseout: "this.style.filter='brightness(1)'",
+                    onclick: "openImageModal(this.src)" %>
+            <% end %>
+            
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="markdown-body">
+      <%# コントローラで変換したHTMLを安全に出力 %>
+      <%= @html_content.html_safe %>
+    </div>
+
+    <% if current_user && (current_user == @article.user || current_user.admin?) %>
+      <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
+        <%= link_to "この記事を編集", edit_article_path(@article), class: "btn btn-primary" %>
+        <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この記事を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
+      </div>
+    <% end %>
+    
+  </article>
+</div>
+
+<div id="imageLightbox" class="lightbox-overlay" onclick="closeImageModal()">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightboxImage" class="lightbox-content">
+</div>
+
+<style>
+  /* ライトボックスの背景（扉アニメーションの上に来るようz-indexを高めに設定） */
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(18, 10, 0, 0.85); /* ダークブラウンの半透明 */
+    backdrop-filter: blur(4px); /* 背景を少しぼかす */
+    cursor: zoom-out;
+  }
+
+  /* 拡大された実際の画像 */
+  .lightbox-content {
+    margin: auto;
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 95%;
+    max-height: 95vh;
+    object-fit: contain; /* 縦横比を崩さずに全体を表示 */
+    border: 2px solid var(--clr-border-lite, #5a3510);
+    box-shadow: 0 0 30px rgba(0,0,0,0.9);
+    border-radius: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* 閉じるボタン */
+  .lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    color: #ffebc2;
+    font-size: 40px;
+    font-family: sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .lightbox-close:hover {
+    color: #fff;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -48%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+</style>
+
+<script>
+  // 画像を開く処理
+  function openImageModal(imageSrc) {
+    var modal = document.getElementById("imageLightbox");
+    var expandedImg = document.getElementById("lightboxImage");
+    modal.style.display = "block";
+    expandedImg.src = imageSrc; // クリックされた画像のURLをセット
+    document.body.style.overflow = "hidden"; // 背景のスクロールを止める
+  }
+
+  // 画像を閉じる処理
+  function closeImageModal() {
+    var modal = document.getElementById("imageLightbox");
+    modal.style.display = "none";
+    document.body.style.overflow = "auto"; // スクロールを再開
+  }
+</script>
