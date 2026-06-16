@@ -69,12 +69,74 @@
 
     <% if current_user && (current_user == @article.user || current_user.admin?) %>
       <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
-        <%= link_to "この記事を編集", edit_article_path(@article), class: "btn btn-primary" %>
+        <button type="button" class="btn btn-primary" onclick="openEditModal()">この記事を編集</button>
         <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この記事を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
       </div>
     <% end %>
     
   </article>
+</div>
+
+<div id="editArticleModal" class="modal-overlay" style="display: none;">
+  <div class="modal-wrapper">
+    <div class="modal-header-custom">
+      <h2>記事の編集</h2>
+      <span class="modal-close-custom" onclick="closeEditModal()">&times;</span>
+    </div>
+    
+    <%# すでにコントローラにある update アクションへデータを送信します %>
+    <%# フォーム本体 %>
+    <%= form_with model: @article, local: true do |f| %>
+      <div class="form-group" style="margin-bottom: 16px;">
+        <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+        <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" %>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+        <%# ⭕ 修正: resize: vertical; を追加し、横方向への拡大を禁止 %>
+        <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;" %>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 16px;">
+        <%= f.label :tags, "タグ (カンマ区切り)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+        <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", placeholder: "例: 日記, お知らせ" %>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">添付画像 (最大4枚)</label>
+        
+        <div class="image-selector-container" style="display: flex; gap: 10px; overflow-x: auto; padding: 4px 0;">
+          <% if @all_images.present? %>
+            <% @all_images.each do |image| %>
+              <%# 既にこの記事に紐付いている画像か判定 %>
+              <% is_checked = @article.images.include?(image) %>
+              
+              <label class="image-checkbox-label" style="cursor: pointer; position: relative; flex-shrink: 0;">
+                <input type="checkbox" name="image_ids[]" value="<%= image.id %>" 
+                       <%= 'checked' if is_checked %> 
+                       style="display: none;" 
+                       onchange="toggleImageSelect(this)">
+                
+                <div class="image-thumbnail" style="width: 80px; height: 80px; border-radius: 4px; overflow: hidden; border: <%= is_checked ? '3px solid var(--clr-primary, #e8a820)' : '1px solid var(--clr-border)' %>; opacity: <%= is_checked ? '1' : '0.5' %>; transition: all 0.2s;">
+                  <% if image.file_attachment.present? %>
+                    <%= image_tag image.file_attachment, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
+                  <% end %>
+                </div>
+              </label>
+            <% end %>
+          <% else %>
+            <p style="color: var(--clr-text-muted); font-size: 14px;">選択できる画像がありません。</p>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; border-top: none; padding-top: 0; margin-top: 0;">
+        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
+        <%= f.submit "変更を保存する", class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
 </div>
 
 <div id="imageLightbox" class="lightbox-overlay" onclick="closeImageModal()">
@@ -130,6 +192,63 @@
     color: #fff;
   }
 
+  /* モーダルの背景（暗転エリア） */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(18, 10, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+  }
+
+  /* モーダル本体のウインドウ */
+  .modal-wrapper {
+    background: var(--clr-surface-2, #2e1a00);
+    border: 2px solid var(--clr-border);
+    border-radius: var(--radius-sm);
+    padding: 24px;
+    width: 90%;
+    max-width: 650px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    animation: modalSlideUp 0.25s ease-out;
+  }
+
+  .modal-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--clr-border-lite);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .modal-header-custom h2 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--clr-gold-light);
+    font-family: var(--font-heading);
+    letter-spacing: 0.05em;
+  }
+
+  .modal-close-custom {
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--clr-text-muted);
+    line-height: 1;
+  }
+
+  .modal-close-custom:hover {
+    color: var(--clr-gold-light);
+  }
+
+  @keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translate(-50%, -48%); }
     to { opacity: 1; transform: translate(-50%, -50%); }
@@ -152,4 +271,36 @@
     modal.style.display = "none";
     document.body.style.overflow = "auto"; // スクロールを再開
   }
+
+  function openEditModal() {
+    document.getElementById("editArticleModal").style.display = "flex";
+    document.body.style.overflow = "hidden"; // 背面のスクロールを固定
+  }
+
+  function closeEditModal() {
+    document.getElementById("editArticleModal").style.display = "none";
+    document.body.style.overflow = "auto"; // スクロールを戻す
+  }
+
+  // 画像選択のチェックボックスを切り替えたときのスタイル変更
+  function toggleImageSelect(checkbox) {
+    var thumbnail = checkbox.nextElementSibling; // 隣の div.image-thumbnail を取得
+    
+    // 4枚制限の簡易チェック（任意）
+    var checkedBoxes = document.querySelectorAll('input[name="image_ids[]"]:checked');
+    if (checkedBoxes.length > 4) {
+      alert("画像は最大4枚までしか選択できません。");
+      checkbox.checked = false;
+      return;
+    }
+
+    if (checkbox.checked) {
+      thumbnail.style.border = "3px solid var(--clr-primary, #e8a820)"; // 選択時は目立たせる
+      thumbnail.style.opacity = "1";
+    } else {
+      thumbnail.style.border = "1px solid var(--clr-border)";
+      thumbnail.style.opacity = "0.5"; // 非選択時は少し暗く
+    }
+  }
+
 </script>

@@ -14,11 +14,13 @@ class ArticlesController < ApplicationController
     end
   end
 
-  # ⭕【修正2】private の中にあった show を、通常のアクション（public）の位置へ移動
   def show
-    # これで @article が正しく入った状態で、Kramdown の処理が実行されます
+    # Markdownの処理
     markdown_text = @article.content || ""
     @html_content = Kramdown::Document.new(markdown_text).to_html
+    
+    # ⭕ これを追加: 編集モーダルの画像選択用に、すべての画像を読み込む
+    @all_images = Image.includes(:file_attachment).ordered_by_date
   end
 
   def create
@@ -36,10 +38,10 @@ class ArticlesController < ApplicationController
     if @article.update(article_params)
       @article.article_images.destroy_all
       attach_images(@article)
-      redirect_to articles_path, notice: "記事を更新しました"
+      redirect_to article_path(@article), notice: "記事を更新しました"
     else
       @all_images = Image.ordered_by_date
-      redirect_to articles_path, alert: "更新に失敗しました"
+      redirect_to article_path(@article), alert: "更新に失敗しました"
     end
   end
 

@@ -1,16 +1,3 @@
-<%#
-  ── バックエンド側で追加が必要な対応 ──
-  articles_controller.rb の index アクション内に以下を追加してください：
-
-  # 記事が存在する日付の一覧（カレンダー用）
-  @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
-
-  # 日付絞り込み
-  if params[:date].present?
-    @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
-  end
-%>
-
 <div class="container">
   <header class="page-header">
     <h1>記事</h1>
@@ -23,7 +10,6 @@
         <button class="btn btn-primary" id="newArticleBtn">新しい記事を投稿</button>
       <% end %>
       <div class="filter-section-row">
-        <!-- ▼ カレンダーフィルター（検索ボックスの左側） -->
         <div class="filter-section" id="articleFilterSection">
           <%= form_with url: articles_path, method: :get, local: true, class: "date-filter-form", data: { turbo: false } do |f| %>
             <button type="button" class="btn-cal-toggle" id="artCalToggleBtn">
@@ -46,8 +32,6 @@
             </div>
           <% end %>
         </div>
-        <!-- ▲ カレンダーフィルターここまで -->
-
         <input type="text" placeholder="記事を検索..." id="searchArticles" class="search-input">
       </div>
     </div>
@@ -106,92 +90,85 @@
     </div>
   </div>
 
-  <!-- 記事投稿モーダル -->
   <div class="modal" id="articleModal">
     <div class="modal-content modal-lg">
       <span class="close" id="closeArticleModal">&times;</span>
       <h2>記事を投稿</h2>
       <%= form_with url: articles_path, method: :post, id: "articleForm", scope: :article do |f| %>
-        <div class="form-group">
-            <%= f.label :title, "タイトル" %>
-            <%= f.text_field :title, required: true, placeholder: "記事のタイトルを入力してください", data: { maxweight: 40 } %>
-        </div>
-        <div class="form-group">
-            <%= f.label :content, "本文" %>
-            <%= f.text_area :content, rows: 6, required: true, placeholder: "記事の内容を入力してください", data: { maxweight: 2000 } %>
-        </div>
-        <div class="form-group">
-            <%= f.label :tags, "タグ（カンマで区切る）" %>
-            <%= f.text_field :tags, placeholder: "例：イベント, 冒険, 面白かった" %>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+          <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true %>
         </div>
 
-        <!-- 画像選択 -->
-        <div class="form-group">
-          <label>画像を選択（最大4枚）</label>
-          <div class="image-picker" id="imagePicker">
-            <% if @all_images.any? %>
-              <% @all_images.each do |img| %>
-                <% if img.file.attached? %>
-                  <div class="picker-item" data-image-id="<%= img.id %>">
-                    <%= image_tag img.file.variant(resize_to_fill: [120, 120]), class: "picker-thumb" %>
-                    <div class="picker-check">✓</div>
-                    <input type="checkbox" name="image_ids[]" value="<%= img.id %>" class="picker-checkbox" style="display:none;">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+          <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true %>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <%= f.label :tags, "タグ (カンマ区切り)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
+          <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", placeholder: "例: 日記, お知らせ" %>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">添付画像 (最大4枚)</label>
+          <div class="image-selector-container" style="display: flex; gap: 10px; overflow-x: auto; padding: 4px 0;">
+            <% if @all_images.present? %>
+              <% @all_images.each do |image| %>
+                <label class="image-checkbox-label" style="cursor: pointer; position: relative; flex-shrink: 0;">
+                  <input type="checkbox" name="image_ids[]" value="<%= image.id %>" 
+                         style="display: none;" 
+                         onchange="toggleImageSelect(this)">
+                  <div class="image-thumbnail" style="width: 80px; height: 80px; border-radius: 4px; overflow: hidden; border: 1px solid var(--clr-border); opacity: 0.5; transition: all 0.2s;">
+                    <% if image.file_attachment.present? %>
+                      <%= image_tag image.file_attachment, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
+                    <% end %>
                   </div>
-                <% end %>
+                </label>
               <% end %>
             <% else %>
-              <p class="no-images-msg">ギャラリーに画像がありません</p>
+              <p style="color: var(--clr-text-muted); font-size: 14px;">選択できる画像がありません。</p>
             <% end %>
           </div>
-          <p class="picker-hint">選択中: <span id="selectedCount">0</span> / 4枚</p>
         </div>
 
-        <div class="form-actions">
-          <%= f.submit "投稿", class: "btn btn-primary" %>
-          <button type="button" class="btn btn-secondary" id="cancelArticle">キャンセル</button>
+        <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" id="cancelArticleBtn">キャンセル</button>
+          <%= f.submit "投稿する", class: "btn btn-primary" %>
         </div>
+
       <% end %>
     </div>
   </div>
 
-  <!-- 記事詳細モーダル -->
-<div class="modal" id="articleViewModal">
-  <div class="article-view-modal-content">
-
-    <!-- ヒーロー画像エリア -->
-    <div id="viewModalImageArea" class="view-modal-hero"></div>
-
-    <!-- 画像フルスクリーンプレビュー -->
-    <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
-      <button class="preview-close-btn" id="closePreview">&times;</button>
-      <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
-    </div>
-
-    <!-- ヘッダー（閉じるボタン） -->
-    <div class="article-view-header">
-      <button class="article-view-close" id="closeArticleViewModal" aria-label="閉じる">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- 本文エリア -->
-    <div class="view-modal-body">
-      <div class="view-modal-meta-row">
-        <span class="view-modal-author-badge" id="viewModalAuthorBadge"></span>
-        <span class="view-modal-date" id="viewModalDate"></span>
+  <div class="modal" id="articleViewModal">
+    <div class="article-view-modal-content">
+      <div id="viewModalImageArea" class="view-modal-hero"></div>
+      <div id="viewModalPreview" class="view-modal-preview" style="display:none;">
+        <button class="preview-close-btn" id="closePreview">&times;</button>
+        <img id="viewModalPreviewImg" src="" alt="プレビュー" class="preview-full-img">
       </div>
-      <h2 id="viewModalTitle" class="view-modal-title"></h2>
-      <div id="viewModalTags" class="view-modal-tags"></div>
-      <div class="view-modal-divider"></div>
-      <p id="viewModalContent" class="view-modal-content-text"></p>
+      <div class="article-view-header">
+        <button class="article-view-close" id="closeArticleViewModal" aria-label="閉じる">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="view-modal-body">
+        <div class="view-modal-meta-row">
+          <span class="view-modal-author-badge" id="viewModalAuthorBadge"></span>
+          <span class="view-modal-date" id="viewModalDate"></span>
+        </div>
+        <h2 id="viewModalTitle" class="view-modal-title"></h2>
+        <div id="viewModalTags" class="view-modal-tags"></div>
+        <div class="view-modal-divider"></div>
+        <p id="viewModalContent" class="view-modal-content-text"></p>
+      </div>
     </div>
-
   </div>
-</div>
 
-  <!-- 記事編集モーダル -->
   <div class="modal" id="editArticleModal">
     <div class="modal-content modal-lg">
       <span class="close" id="closeEditModal">&times;</span>
@@ -199,61 +176,66 @@
       <form id="editArticleForm" method="post">
         <input type="hidden" name="_method" value="patch">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <div class="form-group">
-          <label>タイトル</label>
-          <input type="text" name="article[title]" id="editArticleTitle" required data-maxweight="40">
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">タイトル</label>
+          <input type="text" name="article[title]" id="editArticleTitle" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" required>
         </div>
-        <div class="form-group">
-          <label>本文</label>
-          <textarea name="article[content]" id="editArticleContent" rows="6" required data-maxweight="2000"></textarea>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">本文 (Markdown)</label>
+          <textarea name="article[content]" id="editArticleContent" rows="12" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;" required></textarea>
         </div>
-        <div class="form-group">
-          <label>タグ</label>
-          <input type="text" name="article[tags]" id="editArticleTags" placeholder="例：イベント, 冒険">
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">タグ (カンマ区切り)</label>
+          <input type="text" name="article[tags]" id="editArticleTags" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" placeholder="例：イベント, 冒険">
         </div>
 
-        <!-- 画像選択 -->
-        <div class="form-group">
-          <label>画像を選択（最大4枚）</label>
-          <div class="image-picker" id="editImagePicker">
-            <% if @all_images.any? %>
-              <% @all_images.each do |img| %>
-                <% if img.file.attached? %>
-                  <div class="picker-item" data-image-id="<%= img.id %>">
-                    <%= image_tag img.file.variant(resize_to_fill: [120, 120]), class: "picker-thumb" %>
-                    <div class="picker-check">✓</div>
-                    <input type="checkbox" name="image_ids[]" value="<%= img.id %>" class="picker-checkbox" style="display:none;">
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">添付画像 (最大4枚)</label>
+          <div class="image-selector-container" style="display: flex; gap: 10px; overflow-x: auto; padding: 4px 0;">
+            <% if @all_images.present? %>
+              <% @all_images.each do |image| %>
+                <label class="image-checkbox-label" style="cursor: pointer; position: relative; flex-shrink: 0;">
+                  <input type="checkbox" name="image_ids[]" value="<%= image.id %>" 
+                         class="picker-checkbox" 
+                         style="display: none;" 
+                         onchange="toggleImageSelect(this)">
+                  <div class="image-thumbnail" style="width: 80px; height: 80px; border-radius: 4px; overflow: hidden; border: 1px solid var(--clr-border); opacity: 0.5; transition: all 0.2s;">
+                    <% if image.file_attachment.present? %>
+                      <%= image_tag image.file_attachment, style: "width: 100%; height: 100%; object-fit: cover; display: block;" %>
+                    <% end %>
                   </div>
-                <% end %>
+                </label>
               <% end %>
             <% else %>
-              <p class="no-images-msg">ギャラリーに画像がありません</p>
+              <p style="color: var(--clr-text-muted); font-size: 14px;">ギャラリーに画像がありません。</p>
             <% end %>
           </div>
-          <p class="picker-hint">選択中: <span id="editSelectedCount">0</span> / 4枚</p>
         </div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">更新</button>
+        <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
           <button type="button" class="btn btn-secondary" id="cancelEdit">キャンセル</button>
+          <button type="submit" class="btn btn-primary">更新</button>
         </div>
       </form>
     </div>
   </div>
-  <!-- 記事用画像拡大モーダル -->
-    <div class="modal" id="articleImageViewModal">
+
+  <div class="modal" id="articleImageViewModal">
     <div class="modal-content article-image-view-modal-content">
-        <div class="image-modal-header">
+      <div class="image-modal-header">
         <span class="close" id="closeArticleImageModal">&times;</span>
-        </div>
-        <div class="image-modal-body">
+      </div>
+      <div class="image-modal-body">
         <img id="articleModalImage" src="" alt="拡大画像" class="modal-full-image">
-        </div>
-        <div class="image-modal-footer">
+      </div>
+      <div class="image-modal-footer">
         <button class="btn btn-secondary" id="closeArticleImageModalBtn">閉じる</button>
-        </div>
+      </div>
     </div>
-    </div>
+  </div>
 </div>
 
 <style>
@@ -1293,5 +1275,37 @@
     if (e.target === document.getElementById('articleImageViewModal')) {
       document.getElementById('articleImageViewModal').classList.remove('active');
     }
+
+   // 画像選択のチェックボックスを切り替えたときのスタイル変更
+  function toggleImageSelect(checkbox) {
+    var thumbnail = checkbox.nextElementSibling;
+    
+    // 同じフォーム内のチェックされたボックスをカウント（4枚制限）
+    var form = checkbox.closest('form');
+    var checkedBoxes = form.querySelectorAll('input[name="image_ids[]"]:checked');
+    
+    if (checkedBoxes.length > 4) {
+      alert("画像は最大4枚までしか選択できません。");
+      checkbox.checked = false;
+      return;
+    }
+
+    if (checkbox.checked) {
+      thumbnail.style.border = "3px solid var(--clr-primary, #e8a820)";
+      thumbnail.style.opacity = "1";
+    } else {
+      thumbnail.style.border = "1px solid var(--clr-border)";
+      thumbnail.style.opacity = "0.5";
+    }
+  }
+  // ※既存のJavaScriptがチェックボックスを自動選択した際にも枠線を更新するための処理
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('.picker-checkbox').forEach(function(checkbox) {
+      // 編集モーダルを開いたときなどにJS側でcheckedが変更されたら、このイベントを発火させる想定
+      checkbox.addEventListener('change', function() {
+        toggleImageSelect(this);
+      });
+    });
+  });
   });
 </script>
