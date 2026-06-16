@@ -15,7 +15,7 @@
             <button type="button" class="btn-cal-toggle" id="artCalToggleBtn">
               📅 <span id="artCalToggleText"><%= params[:date].present? ? params[:date] : "日付で絞り込む" %></span>
             </button>
-            <div class="calendar-filter" id="artCalendarFilter" style="display:none; position: absolute; bottom: 100%; right: 0; width: 260px; margin-bottom: 8px; z-index: 2100;">
+            <div class="calendar-filter" id="artCalendarFilter" style="display:none; position: absolute; top: calc(100% + 8px); left: 0; width: 260px; margin-bottom: 8px; z-index: 2100;">
               <div class="calendar-header">
                 <button type="button" class="cal-nav" id="artCalPrev">&#8249;</button>
                 <span class="cal-title" id="artCalTitle">
@@ -582,13 +582,16 @@
 
   .article-actions .btn-secondary {
     background-color: #ecf0f1;
-    color: #2c3e50;
-    border: 1px solid #bdc3c7;
+    color: #e8a81b
+    border: 1px solid #352f12;
     padding: 6px 14px;
     font-size: 13px;
     font-weight: 600;
     line-height: 1;
-    display: inline-block;
+    /* 以下を inline-flex と中央揃えに変更 */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .article-actions .btn-secondary:hover { background-color: #dde1e3; }
@@ -1055,12 +1058,28 @@
         openModal('articleModal');
       });
     }
-    document.getElementById('closeArticleModal').addEventListener('click', () => closeModal('articleModal'));
-    document.getElementById('cancelArticleBtn').addEventListener('click', () => closeModal('articleModal'));
+    // ── 投稿モーダル ──
+const closeArticleModal = document.getElementById('closeArticleModal');
+if (closeArticleModal) {
+  closeArticleModal.addEventListener('click', () => closeModal('articleModal'));
+}
 
-    // ── 編集モーダル ──
-    document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editArticleModal'));
-    document.getElementById('cancelEdit').addEventListener('click', () => closeModal('editArticleModal'));
+// IDを「cancelPostBtn」に変更し、存在チェックを入れる
+const cancelPostBtn = document.getElementById('cancelPostBtn');
+if (cancelPostBtn) {
+  cancelPostBtn.addEventListener('click', () => closeModal('articleModal'));
+}
+
+// ── 編集モーダル ──（こちらも念のため安全対策をしておきます）
+const closeEditModal = document.getElementById('closeEditModal');
+if (closeEditModal) {
+  closeEditModal.addEventListener('click', () => closeModal('editArticleModal'));
+}
+
+const cancelEdit = document.getElementById('cancelEdit');
+if (cancelEdit) {
+  cancelEdit.addEventListener('click', () => closeModal('editArticleModal'));
+}
 
     // ── 画像ピッカー ──
     function initPicker(pickerId, counterId, maxCount) {
