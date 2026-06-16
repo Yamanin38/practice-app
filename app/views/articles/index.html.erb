@@ -69,14 +69,9 @@
               </p>
               <% if current_user&.admin? || current_user == article.user %>
                 <div class="article-actions">
-                  <button class="btn btn-secondary btn-sm edit-article-btn"
-                    data-id="<%= article.id %>"
-                    data-title="<%= article.title %>"
-                    data-content="<%= article.content %>"
-                    data-tags="<%= article.tags %>"
-                    data-image-ids="<%= article.images.pluck(:id).join(',') %>">
-                    編集
-                  </button>
+                  <%# ボタンから、詳細ページへのパラメータ付きリンク（aタグ）に変更 %>
+                  <%= link_to "編集", article_path(article, edit: true), class: "btn btn-secondary btn-sm" %>
+
                   <%= button_to "削除", article_path(article), method: :delete,
                       class: "btn btn-danger btn-sm",
                       data: { confirm: "本当に削除しますか？" } %>

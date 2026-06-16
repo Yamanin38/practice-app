@@ -362,6 +362,22 @@
     document.body.style.overflow = "auto"; // スクロールを戻す
   }
 
+  document.addEventListener("DOMContentLoaded", function() {
+  // URLのクエリパラメータ（?edit=true など）を取得
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // もし edit パラメータが 'true' だったら、編集モーダルを開く
+  if (urlParams.get('edit') === 'true') {
+    if (typeof openEditModal === "function") {
+      openEditModal();
+      
+      // 任意：URLから「?edit=true」の見た目を消したい場合は、以下の1行を入れると綺麗になります
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    }
+  }
+});
+
   // 画像選択のチェックボックスを切り替えたときのスタイル変更
   function toggleImageSelect(checkbox) {
     var thumbnail = checkbox.nextElementSibling; // 隣の div.image-thumbnail を取得
