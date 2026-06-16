@@ -898,6 +898,7 @@ a.feature-card {
   overflow: hidden;
   min-width: 0;
   position: relative;
+  min-height: 100%;
 }
 
 .about-content::before {
@@ -1529,6 +1530,9 @@ a.feature-card {
 .articles-actions {
   position: relative;
   z-index: 1500;
+}
+.page-content--plain::before {
+  display: none;
 }
 
 /* ============================================================
