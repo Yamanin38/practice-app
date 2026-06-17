@@ -12,37 +12,42 @@
 
   <body>
     <nav class="navbar" <% if current_user %>data-current-user='<%= { username: current_user.username, role: current_user.role }.to_json %>'<% end %>>
-      <div class="navbar-container">
-        <div class="navbar-logo">
-          <a href="/">Team Site</a>
-        </div>
-        <ul class="nav-menu" id="navMenu">
-          <li class="nav-item"><a href="/" class="nav-link <%= 'active' if current_page?('/') %>">ホーム</a></li>
-          <li class="nav-item"><a href="/about" class="nav-link <%= 'active' if current_page?('/about') %>">チーム概要</a></li>
-          <li class="nav-item"><a href="/gallery" class="nav-link <%= 'active' if current_page?('/gallery') %>">ギャラリー</a></li>
-          <li class="nav-item"><a href="/articles" class="nav-link <%= 'active' if current_page?('/articles') %>">活動記録</a></li>
-          <li class="nav-item"><a href="/recruitment" class="nav-link <%= 'active' if current_page?('/recruitment') %>">入隊案内</a></li>
-          <li class="nav-item"><a href="/rules" class="nav-link <%= 'active' if current_page?('/rules') %>">チーム規約</a></li>
-          <li class="nav-item"><a href="/contact" class="nav-link <%= 'active' if current_page?('/contact') %>">お問い合わせ</a></li>
-          <li class="nav-item admin-menu" id="adminMenu" style="display: none;">
-            <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if current_page?(admin_settings_path) %>">管理画面</a>
-          </li>
-        </ul>
-        <div class="nav-auth" id="navAuth">
-        <a href="<%= login_path %>" class="btn btn-secondary btn-sm" id="loginBtn">ログイン</a>
-        <button class="btn btn-secondary btn-sm" id="logoutBtn" style="display: none;">ログアウト</button>
-          <span class="user-info" id="userInfo" style="display: none;">
-            <span id="userName"></span>
-            <span class="user-role" id="userRole"></span>
-          </span>
-        </div>
-        <div class="hamburger" id="hamburger">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-      </div>
-    </nav>
+  <div class="navbar-container">
+    
+    <div class="navbar-logo">
+      <a href="/">Team Site</a>
+    </div>
+
+    <ul class="nav-menu" id="navMenu">
+      <li class="nav-item"><a href="/" class="nav-link <%= 'active' if current_page?('/') %>">ホーム</a></li>
+      <li class="nav-item"><a href="/about" class="nav-link <%= 'active' if current_page?('/about') %>">チーム概要</a></li>
+      <li class="nav-item"><a href="/gallery" class="nav-link <%= 'active' if current_page?('/gallery') %>">ギャラリー</a></li>
+      <li class="nav-item"><a href="/articles" class="nav-link <%= 'active' if current_page?('/articles') %>">活動記録</a></li>
+      <li class="nav-item"><a href="/recruitment" class="nav-link <%= 'active' if current_page?('/recruitment') %>">入隊案内</a></li>
+      <li class="nav-item"><a href="/rules" class="nav-link <%= 'active' if current_page?('/rules') %>">チーム規約</a></li>
+      <li class="nav-item"><a href="/contact" class="nav-link <%= 'active' if current_page?('/contact') %>">お問い合わせ</a></li>
+      <li class="nav-item admin-menu" id="adminMenu" style="display: none;">
+        <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if current_page?(admin_settings_path) %>">管理画面</a>
+      </li>
+    </ul>
+
+    <div class="nav-auth" id="navAuth">
+      <a href="<%= login_path %>" class="btn btn-secondary btn-sm" id="loginBtn">ログイン</a>
+      <button class="btn btn-secondary btn-sm" id="logoutBtn" style="display: none;">ログアウト</button>
+      <span class="user-info" id="userInfo" style="display: none;">
+        <span id="userName"></span>
+        <span class="user-role" id="userRole"></span>
+      </span>
+    </div>
+
+    <div class="hamburger" id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    
+  </div>
+</nav>
 
     <main class="main-content">
       <%= yield %>

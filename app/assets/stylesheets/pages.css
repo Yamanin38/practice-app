@@ -94,7 +94,6 @@ body {
   z-index: 1600;
 }
 
-/* Inner sheen line */
 .navbar::after {
   content: '';
   display: block;
@@ -115,16 +114,20 @@ body {
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
   padding: 0 24px;
   height: 68px;
+  
+  /* ★ Flexboxで横並びの土台を作る */
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap; /* 改行を絶対に許さない */
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
+  flex-shrink: 0; /* ロゴが潰れるのを防ぐ */
+  margin-right: 32px; /* ★ここで「Team Site」と「ホーム」の隙間を固定 */
 }
 
 .navbar-logo a {
@@ -138,6 +141,7 @@ body {
     0 1px 0 rgba(0,0,0,.8),
     0 0 12px rgba(200,130,10,.4);
   transition: color .3s, text-shadow .3s;
+  white-space: nowrap; /* 改行防止 */
 }
 
 .navbar-logo a:hover {
@@ -149,14 +153,16 @@ body {
   display: flex;
   list-style: none;
   gap: 0;
-  align-items: stretch;
   height: 100%;
+  
+  /* ★ これが一番重要：右側に空白を全て集め、ログイン情報を右端に押し出す */
+  margin-right: auto; 
+  flex-shrink: 0; /* メニュー全体が潰れるのを防ぐ */
 }
 
 .nav-item {
   display: flex;
-  align-items: stretch;
-  position: relative;
+  align-items: stretch; /* 高さ（68px）いっぱいに当たり判定を広げる */
 }
 
 .nav-item a {
@@ -167,14 +173,13 @@ body {
   color: var(--clr-text);
   text-decoration: none;
   display: flex;
-  align-items: center;
-  padding: 0 18px;
-  height: 100%;
+  align-items: center; /* 上下中央揃え */
+  padding: 0 18px; /* 左右の余白（当たり判定） */
   transition: color .25s, background .25s;
   position: relative;
+  white-space: nowrap; /* リンク文字の改行防止 */
 }
 
-/* Bottom highlight bar on hover/active */
 .nav-item a::after {
   content: '';
   position: absolute;
@@ -199,6 +204,15 @@ body {
   transform: scaleX(1);
 }
 
+/* ── Nav Auth (右側のログイン・ユーザー情報) ── */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0; /* 右側の情報が潰れるのを防ぐ */
+  white-space: nowrap;
+}
+
 /* ── Hamburger ── */
 .hamburger {
   display: none;
@@ -206,6 +220,34 @@ body {
   cursor: pointer;
   gap: 6px;
   align-self: center;
+}
+
+/* ── スマホ時のレイアウト修正 ── */
+@media (max-width: 992px) {
+  /* 画面幅が狭い場合（iPadの縦やスマホ）、強制横並びだと崩れるため
+     ハンバーガーメニューを表示し、メニューを隠す */
+  .nav-menu {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    flex-direction: column;
+    background: linear-gradient(180deg, #2e1a00 0%, #1a0a00 100%);
+    border-top: 1px solid var(--clr-border);
+    height: auto;
+  }
+  .nav-menu.active {
+    display: flex;
+  }
+  .hamburger {
+    display: flex;
+    margin-left: 16px;
+  }
+  /* ロゴの右側固定余白を解除し、右端へ押し出しなおす */
+  .navbar-logo {
+    margin-right: auto;
+  }
 }
 
 .hamburger span {
@@ -1622,4 +1664,34 @@ a.feature-card {
     display: none;
     z-index: -1;
   }
+}
+
+/* ── 管理画面メニューの表示を他のメニューと完全に統一する ── */
+.nav-menu .nav-item.admin-menu {
+  display: flex !important; /* JS側で block に書き換えられても flex を維持 */
+  align-items: stretch;
+  margin-right: 24px;       /* ★追加：管理画面の右側に少しスペース（余白）を空ける */
+}
+
+.nav-menu .nav-item.admin-menu a {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: var(--clr-text);    /* ★修正：他のメニューと同じ標準の文字色（ベージュ系）に揃える */
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  transition: color .25s, background .25s;
+  position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ホバー時、または管理画面ページを開いている（activeクラスがある）時だけ黄色くする */
+.nav-menu .nav-item.admin-menu a:hover,
+.nav-menu .nav-item.admin-menu a.active {
+  color: var(--clr-gold-light); /* ★修正：ホバー時のみゴールド（黄色）にする */
+  background: rgba(200,130,10,.08);
 }
