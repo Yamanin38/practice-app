@@ -23,6 +23,11 @@ Rails.application.configure do
   # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
   # config.public_file_server.enabled = false
 
+  # 既存のコメントを外して追加
+  config.public_file_server.headers = {
+  "Cache-Control" => "public, max-age=#{1.year.to_i}, immutable"
+}
+
   # Compress CSS using a preprocessor.
   # config.assets.css_compressor = :sass
 
@@ -38,6 +43,9 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
+
+  # ProxyモードでActiveStorageを配信（URLが固定されキャッシュが効く）
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
