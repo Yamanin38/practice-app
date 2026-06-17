@@ -1,22 +1,19 @@
 class PagesController < ApplicationController
   def index
-    # 最新記事を日時の降順で最大10件取得
-    @latest_articles = Article.order(created_at: :desc).limit(10)
+  @latest_articles = Article.order(created_at: :desc).limit(10)
+  @latest_image = Image.includes(file_attachment: :blob).order(created_at: :desc).first
+end
 
-    # 最新の画像を日時の降順で1件取得
-    @latest_image = Image.order(created_at: :desc).with_attached_file.first
-  end
-
-  def gallery
-    @images = Image.ordered_by_date
-    @images = @images.by_date(params[:date]) if params[:date].present?
-    @images = @images.page(params[:page]).per(20)
-    @upload_dates = Image.all
-                        .map { |img| img.created_at.in_time_zone('Tokyo').to_date }
-                        .uniq
-                        .sort
-                        .reverse
-  end
+def gallery
+  @images = Image.includes(file_attachment: :blob).ordered_by_date
+  @images = @images.by_date(params[:date]) if params[:date].present?
+  @images = @images.page(params[:page]).per(20)
+  @upload_dates = Image.all
+                      .map { |img| img.created_at.in_time_zone('Tokyo').to_date }
+                      .uniq
+                      .sort
+                      .reverse
+end
 
   def about
     @team_profile = TeamProfile.singleton

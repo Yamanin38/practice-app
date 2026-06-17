@@ -5,23 +5,19 @@ class ArticlesController < ApplicationController
   before_action :authorize_owner!, only: [:update, :destroy]
 
   def index
-    @articles = Article.includes(:user, :images).order(created_at: :desc)
-    @all_images = Image.includes(:file_attachment).ordered_by_date
-    @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
-    # 日付絞り込み
-    if params[:date].present?
-      @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
-    end
+  @articles = Article.includes(:user, images: { file_attachment: :blob }).order(created_at: :desc)
+  @all_images = Image.includes(file_attachment: :blob).ordered_by_date
+  @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
+  if params[:date].present?
+    @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
   end
+end
 
-  def show
-    # Markdownの処理
-    markdown_text = @article.content || ""
-    @html_content = Kramdown::Document.new(markdown_text).to_html
-    
-    # ⭕ これを追加: 編集モーダルの画像選択用に、すべての画像を読み込む
-    @all_images = Image.includes(:file_attachment).ordered_by_date
-  end
+def show
+  markdown_text = @article.content || ""
+  @html_content = Kramdown::Document.new(markdown_text).to_html
+  @all_images = Image.includes(file_attachment: :blob).ordered_by_date
+end
 
   def create
     @article = current_user.articles.build(article_params)

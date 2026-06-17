@@ -13,7 +13,7 @@
       <% end %>
 
       <div class="filter-section">
-  <%= form_with url: gallery_path, method: :get, local: true, class: "date-filter-form", data: { turbo: false } do |f| %>
+  <%= form_with url: gallery_path, method: :get, local: true, class: "date-filter-form", data: { turbo: true } do |f| %>
     <button type="button" class="btn-cal-toggle" id="calToggleBtn">
   📅 <span id="calToggleText"><%= params[:date].present? ? params[:date] : "日付で絞り込む" %></span>
 </button>
@@ -956,20 +956,23 @@ window.addEventListener('click', (e) => {
   }
 });
 
-document.getElementById('file_input_field').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+const fileInputField = document.getElementById('file_input_field');
+if (fileInputField) {
+  fileInputField.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const preview = document.getElementById('uploadPreviewImage');
-    const placeholder = document.getElementById('uploadPlaceholder');
-    preview.src = event.target.result;
-    preview.style.display = 'block';
-    placeholder.style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-});
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const preview = document.getElementById('uploadPreviewImage');
+      const placeholder = document.getElementById('uploadPlaceholder');
+      preview.src = event.target.result;
+      preview.style.display = 'block';
+      placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 // カレンダー
 const uploadDates = <%= @upload_dates.map(&:to_s).to_json.html_safe %>;
@@ -1092,13 +1095,6 @@ document.addEventListener('click', (e) => {
 
 // 初期描画
 renderCalendar();
-
-// 絞り込むボタン
-document.getElementById('calApplyBtn').addEventListener('click', () => {
-  fetchImages(selectedDateInput.value);
-  calendarFilter.style.display = 'none';
-  calToggleBtn.classList.remove('active');
-});
 
 // Ajax でギャラリーを更新
 function fetchImages(date) {
