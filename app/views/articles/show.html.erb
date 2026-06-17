@@ -239,6 +239,10 @@
     max-width: 650px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     animation: modalSlideUp 0.25s ease-out;
+    position: relative;
+  display: flex;             /* 追加: 内部をFlexboxにする */
+  flex-direction: column;    /* 追加: 縦並びにする */
+  max-height: 90vh;          /* 追加: モーダルの最大高さを画面の90%に制限 */
   }
 
   .modal-header-custom {
@@ -268,6 +272,14 @@
   .modal-close-custom:hover {
     color: var(--clr-gold-light);
   }
+
+  #articleModal .modal-content,
+#editArticleModal .modal-content {
+  position: relative;
+  display: flex;             /* 追加: 内部をFlexboxにする */
+  flex-direction: column;    /* 追加: 縦並びにする */
+  max-height: 90vh;          /* 追加: モーダルの最大高さを画面の90%に制限 */
+}
 
   @keyframes modalSlideUp {
     from { opacity: 0; transform: translateY(15px); }

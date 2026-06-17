@@ -893,6 +893,9 @@
 #articleModal .modal-content,
 #editArticleModal .modal-content {
   position: relative;
+  display: flex;             /* 追加: 内部をFlexboxにする */
+  flex-direction: column;    /* 追加: 縦並びにする */
+  max-height: 90vh;          /* 追加: モーダルの最大高さを画面の90%に制限 */
 }
 
 #articleModal .modal-content > .close,
@@ -1058,11 +1061,15 @@
       } else {
         el.style.display = 'block';
       }
+      // 追加: どのモーダルを開いたときでも背面のスクロールを禁止する
+      document.body.style.overflow = 'hidden';
     }
     function closeModal(id) {
       const el = document.getElementById(id);
       el.style.display = 'none';
       el.classList.remove('modal-open');
+      // 追加: モーダルを閉じたら背面のスクロールを再開する
+      document.body.style.overflow = '';
       if (id === 'articleViewModal') document.body.style.overflow = '';
     }
 
