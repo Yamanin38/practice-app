@@ -18,7 +18,6 @@ Rails.application.routes.draw do
   patch "recruitment", to: "pages#update_recruitment"
   get "rules", to: "pages#rules"
   patch "rules", to: "pages#update_rules"
-  get "admin/settings", to: "pages#users", as: :admin_settings
   get "contact", to: "pages#contact"
 
   get "up" => "rails/health#show", as: :rails_health_check

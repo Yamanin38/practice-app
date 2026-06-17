@@ -69,9 +69,6 @@ end
     end
   end
 
-  def users
-  end
-
   def contact
   end
 end

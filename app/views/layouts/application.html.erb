@@ -26,9 +26,6 @@
       <li class="nav-item"><a href="/recruitment" class="nav-link <%= 'active' if current_page?('/recruitment') %>">入隊案内</a></li>
       <li class="nav-item"><a href="/rules" class="nav-link <%= 'active' if current_page?('/rules') %>">チーム規約</a></li>
       <li class="nav-item"><a href="/contact" class="nav-link <%= 'active' if current_page?('/contact') %>">お問い合わせ</a></li>
-      <li class="nav-item admin-menu" id="adminMenu" style="display: none;">
-        <a href="<%= admin_settings_path %>" class="nav-link <%= 'active' if current_page?(admin_settings_path) %>">管理画面</a>
-      </li>
     </ul>
 
     <div class="nav-auth" id="navAuth">
@@ -65,7 +62,6 @@
       const userInfo = document.getElementById('userInfo');
       const userName = document.getElementById('userName');
       const userRole = document.getElementById('userRole');
-      const adminMenu = document.getElementById('adminMenu');
 
       // ログイン状態をチェック（Rails session から取得、サーバーサイド）
       function checkLoginStatus() {
@@ -80,15 +76,10 @@
           const roleText = user.role === 'admin' ? '管理者' : 'メンバー';
           userRole.textContent = roleText;
           userRole.className = `user-role ${user.role === 'admin' ? 'admin' : 'member'}`;
-
-          if (user.role === 'admin') {
-            adminMenu.style.display = 'block';
-          }
         } else {
           loginBtn.style.display = 'inline-block';
           logoutBtn.style.display = 'none';
           userInfo.style.display = 'none';
-          adminMenu.style.display = 'none';
         }
       }
 
