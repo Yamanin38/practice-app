@@ -391,6 +391,19 @@
     border-radius: 8px;
     background: #241400;
     aspect-ratio: 1;
+    /* ▼ 木枠のフレームスタイルを追加 ▼ */
+    box-sizing: border-box; /* 枠線をアイテムのサイズ内に収める */
+    border-radius: 4px; /* 元の8px  から少し角を立たせて木枠らしさを出す */
+    border: 3px solid #5c3a21; /* ベースとなる木の茶色 */
+    
+    /* 上と左を明るく、下と右を暗くして立体感（ハイライトとシャドウ）を表現 */
+    border-top-color: #7a4f2f;
+    border-left-color: #7a4f2f;
+    border-bottom-color: #3d2616;
+    border-right-color: #3d2616;
+    
+    /* 木枠自体の外側に影を落として壁に飾っているような質感を出す */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
   }
 
   .gallery-image {
