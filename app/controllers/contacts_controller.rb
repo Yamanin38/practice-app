@@ -48,8 +48,15 @@ class ContactsController < ApplicationController
     request = Net::HTTP::Post.new(uri)
     request.content_type = "application/json"
     
-    channel_token = ENV['LINE_CHANNEL_TOKEN'] || "ここにCHANNEL_TOKEN"
-    user_id       = ENV['LINE_USER_ID']       || "ここにUSER_ID"
+    # ★ 完全な環境変数からの読み込みに変更（直書きテキストは削除）
+    channel_token = ENV['LINE_CHANNEL_TOKEN']
+    user_id       = ENV['LINE_USER_ID']
+
+    # トークンやIDが空の場合はログに出力して処理を中断する（エラー落ちを防ぐ安全策）
+    if channel_token.blank? || user_id.blank?
+      Rails.logger.error "LINE通知エラー: 環境変数 LINE_CHANNEL_TOKEN または LINE_USER_ID が設定されていません。"
+      return
+    end
 
     request["Authorization"] = "Bearer #{channel_token}"
     request.body = JSON.dump({

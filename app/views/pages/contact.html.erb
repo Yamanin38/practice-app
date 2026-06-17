@@ -11,37 +11,36 @@
     <div class="contact-form-section">
   <h2>お問い合わせフォーム</h2>
   
-  <%# 成功時のメッセージ %>
   <% if flash[:notice].present? %>
     <div class="flash flash-notice" style="margin-bottom: 20px;">
       <%= flash[:notice] %>
     </div>
   <% end %>
 
-  <%# エラー時のメッセージ %>
   <% if flash[:alert].present? %>
     <div class="flash flash-alert" style="margin-bottom: 20px;">
       <%= flash[:alert] %>
     </div>
   <% end %>
 
-  <%# ★ココを変更： url: ではなく model: @contact, url: contact_path にします %>
-  <%= form_with model: @contact, url: contact_path, id: "contactForm", class: "contact-form", local: true do |f| %>
+  <%# model: @contact をベースに構築 %>
+  <%= form_with model: @contact, scope: :contact, url: contact_path, class: "contact-form", local: true do |f| %>
     <div class="form-group">
       <%= f.label :name, "お名前" %>
-      <%= f.text_field :name, id: "contactName", required: true, placeholder: "お名前を入力してください" %>
+      <%# 第2引数ではなく、キーワード引数でオプションを渡します %>
+      <%= f.text_field :name, required: true, placeholder: "お名前を入力してください" %>
     </div>
     <div class="form-group">
       <%= f.label :email, "メールアドレス" %>
-      <%= f.email_field :email, id: "contactEmail", required: true, placeholder: "メールアドレスを入力してください" %>
+      <%= f.email_field :email, required: true, placeholder: "メールアドレスを入力してください" %>
     </div>
     <div class="form-group">
       <%= f.label :subject, "件名" %>
-      <%= f.text_field :subject, id: "contactSubject", required: true, placeholder: "件名を入力してください" %>
+      <%= f.text_field :subject, required: true, placeholder: "件名を入力してください" %>
     </div>
     <div class="form-group">
       <%= f.label :message, "メッセージ" %>
-      <%= f.text_area :message, id: "contactMessage", rows: 6, required: true, placeholder: "メッセージを入力してください" %>
+      <%= f.text_area :message, rows: 6, required: true, placeholder: "メッセージを入力してください" %>
     </div>
     <%= f.submit "送信", class: "btn btn-primary" %>
   <% end %>
