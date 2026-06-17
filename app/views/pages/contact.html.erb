@@ -5,57 +5,46 @@
   </header>
 
   <div class="page-content">
-    <div class="edit-btn-container">
-      <button class="btn btn-secondary" id="editContactBtn">編集</button>
-    </div>
-
     <div id="contactView" class="contact-view">
-      <div class="contact-info">
-        <p>お問い合わせ先の情報がまだ設定されていません。</p>
-      </div>
     </div>
 
     <div class="contact-form-section">
-      <h2>お問い合わせフォーム</h2>
-      <form id="contactForm" class="contact-form">
-        <div class="form-group">
-          <label for="contactName">お名前</label>
-          <input type="text" id="contactName" required placeholder="お名前を入力してください">
-        </div>
-        <div class="form-group">
-          <label for="contactEmail">メールアドレス</label>
-          <input type="email" id="contactEmail" required placeholder="メールアドレスを入力してください">
-        </div>
-        <div class="form-group">
-          <label for="contactSubject">件名</label>
-          <input type="text" id="contactSubject" required placeholder="件名を入力してください">
-        </div>
-        <div class="form-group">
-          <label for="contactMessage">メッセージ</label>
-          <textarea id="contactMessage" rows="6" required placeholder="メッセージを入力してください"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">送信</button>
-      </form>
+  <h2>お問い合わせフォーム</h2>
+  
+  <%# 成功時のメッセージ %>
+  <% if flash[:notice].present? %>
+    <div class="flash flash-notice" style="margin-bottom: 20px;">
+      <%= flash[:notice] %>
     </div>
-  </div>
+  <% end %>
 
-  <!-- お問い合わせ先編集フォーム（モーダル） -->
-  <div class="modal" id="editContactModal">
-    <div class="modal-content modal-lg">
-      <span class="close" id="closeEditContact">&times;</span>
-      <h2>お問い合わせ先を編集</h2>
-      <form id="editContactForm">
-        <div class="form-group">
-          <label for="contactContent">お問い合わせ先情報</label>
-          <textarea id="contactContent" rows="10" placeholder="メールアドレス、SNS、その他連絡先など"></textarea>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">保存</button>
-          <button type="button" class="btn btn-secondary" id="cancelContactEdit">キャンセル</button>
-        </div>
-      </form>
+  <%# エラー時のメッセージ %>
+  <% if flash[:alert].present? %>
+    <div class="flash flash-alert" style="margin-bottom: 20px;">
+      <%= flash[:alert] %>
     </div>
-  </div>
+  <% end %>
+
+  <%# ★ココを変更： url: ではなく model: @contact, url: contact_path にします %>
+  <%= form_with model: @contact, url: contact_path, id: "contactForm", class: "contact-form", local: true do |f| %>
+    <div class="form-group">
+      <%= f.label :name, "お名前" %>
+      <%= f.text_field :name, id: "contactName", required: true, placeholder: "お名前を入力してください" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :email, "メールアドレス" %>
+      <%= f.email_field :email, id: "contactEmail", required: true, placeholder: "メールアドレスを入力してください" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :subject, "件名" %>
+      <%= f.text_field :subject, id: "contactSubject", required: true, placeholder: "件名を入力してください" %>
+    </div>
+    <div class="form-group">
+      <%= f.label :message, "メッセージ" %>
+      <%= f.text_area :message, id: "contactMessage", rows: 6, required: true, placeholder: "メッセージを入力してください" %>
+    </div>
+    <%= f.submit "送信", class: "btn btn-primary" %>
+  <% end %>
 </div>
 
 <style>
@@ -70,10 +59,6 @@
     border-radius: 8px;
   }
 
-  .contact-form-section {
-    margin-top: 40px;
-  }
-
   .contact-form {
     max-width: 600px;
     margin-top: 20px;
@@ -83,34 +68,13 @@
     margin: 20px 0;
   }
 
+  .form-group input, .form-group textarea {
+    color: #000000;
+  }
+
   @media (max-width: 768px) {
     .contact-form {
       max-width: 100%;
     }
   }
 </style>
-
-<script>
-  const editContactBtn = document.getElementById('editContactBtn');
-  const editContactModal = document.getElementById('editContactModal');
-  const closeEditContact = document.getElementById('closeEditContact');
-  const cancelContactEdit = document.getElementById('cancelContactEdit');
-
-  editContactBtn.addEventListener('click', () => {
-    editContactModal.style.display = 'block';
-  });
-
-  closeEditContact.addEventListener('click', () => {
-    editContactModal.style.display = 'none';
-  });
-
-  cancelContactEdit.addEventListener('click', () => {
-    editContactModal.style.display = 'none';
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === editContactModal) {
-      editContactModal.style.display = 'none';
-    }
-  });
-</script>

@@ -23,4 +23,7 @@ Rails.application.routes.draw do
 
   get "up" => "rails/health#show", as: :rails_health_check
   resources :articles
+  # お問い合わせ用のルート
+  get  'contact', to: 'contacts#new'
+  post 'contact', to: 'contacts#create'
 end

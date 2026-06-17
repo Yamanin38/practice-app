@@ -91,7 +91,7 @@ body {
     0 4px 20px rgba(0,0,0,.8);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 1600;
 }
 
 /* Inner sheen line */
@@ -1505,7 +1505,7 @@ a.feature-card {
   .page-header h1 { font-size: 22px; }
   .hero-content h1 { font-size: 24px; }
   .feature-card { padding: 20px; }
-  .page-content { padding: 16px; }
+  .page-content { padding: 40px; }
   .container { padding: 0 14px; }
 }
 
