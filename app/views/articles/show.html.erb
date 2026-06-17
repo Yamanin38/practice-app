@@ -67,10 +67,12 @@
       <%= @html_content.html_safe %>
     </div>
 
-    <% if current_user && (current_user == @article.user || current_user.admin?) %>
+    <% if current_user %>
       <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
         <button type="button" class="btn btn-primary" onclick="openEditModal()">この活動記録を編集</button>
-        <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この活動記録を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
+        <% if current_user.admin? %>
+          <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この活動記録を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
+        <% end %>
       </div>
     <% end %>
     

@@ -2,7 +2,8 @@ class ArticlesController < ApplicationController
   before_action :authenticate_user!, only: [:create, :update, :destroy]
   # ⭕【修正1】onlyに :show を追加して、詳細ページでも @article を取得できるようにします
   before_action :set_article, only: [:show, :update, :destroy]
-  before_action :authorize_owner!, only: [:update, :destroy]
+  before_action :authorize_owner!, only: [:update]
+  before_action :authorize_admin!, only: [:destroy]
 
   def index
   @articles = Article.includes(:user, images: { file_attachment: :blob }).order(created_at: :desc)
@@ -72,8 +73,14 @@ end
   end
 
   def authorize_owner!
-    unless current_user&.admin? || @article.user == current_user
-      redirect_to articles_path
-    end
+  unless current_user
+    redirect_to articles_path
   end
+end
+
+def authorize_admin!
+  unless current_user&.admin?
+    redirect_to articles_path
+  end
+end
 end
