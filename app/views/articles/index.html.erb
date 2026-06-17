@@ -96,12 +96,12 @@
         
         <div class="form-group" style="margin-bottom: 16px;">
           <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-          <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true %>
+          <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-          <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true %>
+          <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
@@ -179,12 +179,12 @@
         
         <div class="form-group" style="margin-bottom: 16px;">
           <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">タイトル</label>
-          <input type="text" name="article[title]" id="editArticleTitle" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" required>
+          <input type="text" name="article[title]" id="editArticleTitle" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" required placeholder="タイトル(40字以内)" data-maxweight="40">
         </div>
         
         <div class="form-group" style="margin-bottom: 16px;">
           <label style="display: block; margin-bottom: 6px; color: var(--clr-text);">本文 (Markdown)</label>
-          <textarea name="article[content]" id="editArticleContent" rows="12" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;" required></textarea>
+          <textarea name="article[content]" id="editArticleContent" rows="12" class="form-control" style="width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;" required placeholder="本文(2000字以内)" data-maxweight="2000"></textarea>
         </div>
         
         <div class="form-group" style="margin-bottom: 16px;">
@@ -1258,6 +1258,15 @@ if (cancelEdit) {
 
         daysEl.appendChild(div);
       }
+      // ───【ここを追加】───
+      // 常に6行（7列 × 6行 = 42マス）分の高さを維持するため、月末の足りない分を空白で埋める
+      const currentCells = firstDay + daysInMonth;
+      for (let i = currentCells; i < 42; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+      // ─────────────────────
     }
 
     // ★★★ ここに貼り付けます ★★★
@@ -1419,6 +1428,15 @@ if (cancelEdit) {
 
         daysEl.appendChild(div);
       }
+      // ───【ここから追加】───
+      // 常に6行（7列 × 6行 = 42マス）分の高さを維持するため、月末の足りない分を空白で埋める
+      const currentCells = firstDay + daysInMonth;
+      for (let i = currentCells; i < 42; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+      // ───【ここまで追加】───
     }
 
     // 表示切り替えロジック（AjaxではなくDOMの表示・非表示を切り替える）

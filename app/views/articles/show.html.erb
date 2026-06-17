@@ -89,13 +89,13 @@
     <%= form_with model: @article, local: true do |f| %>
       <div class="form-group" style="margin-bottom: 16px;">
         <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-        <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;" %>
+        <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
       </div>
 
       <div class="form-group" style="margin-bottom: 16px;">
         <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
         <%# ⭕ 修正: resize: vertical; を追加し、横方向への拡大を禁止 %>
-        <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;" %>
+        <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
       </div>
 
       <div class="form-group" style="margin-bottom: 16px;">
@@ -111,7 +111,7 @@
             <button type="button" class="btn-cal-toggle" id="calToggleBtn" style="padding: 4px 10px; font-size: 12px;">
               📅 <span id="calToggleText">日付で絞り込む</span>
             </button>
-            <div class="calendar-filter" id="calendarFilter" style="display:none; position: absolute; bottom: 100%; right: 0; margin-bottom: 8px; z-index: 10001;">
+            <div class="calendar-filter" id="calendarFilter" style="display:none; position: absolute; bottom: 100%; right: 0; width: 260px; margin-bottom: 8px; z-index: 10001;">
               <div class="calendar-header">
                 <button type="button" class="cal-nav" id="calPrev">&#8249;</button>
                 <span class="cal-title" id="calTitle">
@@ -421,6 +421,32 @@
   document.addEventListener('DOMContentLoaded', () => {
     const calendarFilter = document.getElementById('calendarFilter');
     const calToggleBtn = document.getElementById('calToggleBtn');
+
+    // ── 文字数カウント（半角0.5文字換算） ──
+    function calcWeight(str) {
+      let weight = 0;
+      for (const ch of str) {
+        weight += /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
+      }
+      return weight;
+    }
+
+    document.querySelectorAll('[data-maxweight]').forEach(input => {
+      const max = parseFloat(input.dataset.maxweight);
+      input.addEventListener('input', () => {
+        const weight = calcWeight(input.value);
+        if (weight > max) {
+          let trimmed = '', total = 0;
+          for (const ch of input.value) {
+            const w = /[\x00-\x7F]/.test(ch) ? 0.5 : 1;
+            if (total + w > max) break;
+            trimmed += ch;
+            total += w;
+          }
+          input.value = trimmed;
+        }
+      });
+    });
     
     // UIが存在しないページの場合は実行しない
     if (!calendarFilter || !calToggleBtn) return;
@@ -492,6 +518,15 @@
 
         daysEl.appendChild(div);
       }
+      // ───【ここを追加】───
+      // 常に6行（7列 × 6行 = 42マス）分の高さを維持するため、月末の足りない分を空白で埋める
+      const currentCells = firstDay + daysInMonth;
+      for (let i = currentCells; i < 42; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+      // ─────────────────────
     }
 
     // 表示切り替えロジック（AjaxではなくDOMの表示・非表示を切り替える）

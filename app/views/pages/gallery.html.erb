@@ -1041,6 +1041,15 @@ function renderCalendar() {
 
     daysEl.appendChild(div);
   }
+  // ───【ここを追加】───
+      // 常に6行（7列 × 6行 = 42マス）分の高さを維持するため、月末の足りない分を空白で埋める
+      const currentCells = firstDay + daysInMonth;
+      for (let i = currentCells; i < 42; i++) {
+        const blank = document.createElement('div');
+        blank.className = 'cal-day';
+        daysEl.appendChild(blank);
+      }
+      // ─────────────────────
 }
 
 // 前月・次月
