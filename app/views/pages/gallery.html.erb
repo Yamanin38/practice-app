@@ -78,27 +78,28 @@
   <!-- 写真投稿フォーム（モーダル） -->
   <% if current_user %>
     <div class="modal" id="uploadModal">
-  <div class="modal-content upload-modal-content">
-    <div class="upload-modal-header">
-      <span class="close" id="closeModal">&times;</span>
-      <h2>写真を投稿</h2>
+      <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>写真を投稿</h2>
+
+        <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
+          <div class="upload-preview-area" id="uploadPreviewArea">
+            <div class="upload-placeholder" id="uploadPlaceholder">
+              <p class="upload-icon">🖼️</p>
+              <p class="upload-hint">ファイルを選択してください</p>
+            </div>
+            <img id="uploadPreviewImage" class="upload-preview-image" style="display:none;" alt="プレビュー">
+          </div>
+          
+          <div class="upload-file-group">
+            <label for="file_input_field" class="file-label">画像を選択</label>
+            <%= f.file_field :file, accept: "image/*", required: true, id: "file_input_field" %>
+          </div>
+          
+          <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn" %>
+        <% end %>
+      </div>
     </div>
-    <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
-      <div class="upload-preview-area" id="uploadPreviewArea">
-        <div class="upload-placeholder" id="uploadPlaceholder">
-          <p class="upload-icon">🖼️</p>
-          <p class="upload-hint">ファイルを選択してください</p>
-        </div>
-        <img id="uploadPreviewImage" class="upload-preview-image" style="display:none;" alt="プレビュー">
-      </div>
-      <div class="upload-file-group">
-        <label for="file_input_field" class="file-label">画像を選択</label>
-        <%= f.file_field :file, accept: "image/*", required: true, id: "file_input_field" %>
-      </div>
-      <%= f.submit "投稿", class: "btn btn-primary upload-submit-btn" %>
-    <% end %>
-  </div>
-</div>
   <% end %>
 
   <!-- 画像拡大モーダル -->
@@ -868,6 +869,125 @@
 #calMonthText {
   margin-left: 4px;
 }
+
+/* 💡 1. 画面のど真ん中に表示するための設定 */
+#uploadModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+#uploadModal.active {
+  display: flex; /* JSで active が付くと真ん中に表示される */
+}
+#uploadModal .modal-content {
+  margin: 0; /* pages.cssの余白設定を上書きして完全な中央に */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  max-width: 450px; /* 写真投稿用は少しスリムに */
+}
+
+/* 💡 2. 活動記録モーダルと全く同じ余白・配置にする設定 */
+#uploadModal .modal-content > h2 {
+  padding: 28px 36px 0;
+  margin: 0 0 16px 0;
+  color: var(--clr-gold-light);
+}
+#uploadModal .modal-content > form {
+  padding: 20px 36px 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+#uploadModal .modal-content > .close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 10;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* 💡 3. プレビューエリアとボタンをダークテーマ（pages.cssの変数）に合わせる */
+.upload-preview-area {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 300px;
+  background: var(--clr-bg);
+  border-radius: var(--radius-sm);
+  border: 2px dashed var(--clr-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.upload-placeholder {
+  text-align: center;
+  color: var(--clr-text-muted);
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 14px;
+}
+
+.upload-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.upload-file-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.file-label {
+  display: inline-block;
+  padding: 10px 24px;
+  background: linear-gradient(180deg, var(--clr-surface-3) 0%, var(--clr-surface-2) 100%);
+  color: var(--clr-gold-light);
+  border: 1px solid var(--clr-border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 0 rgba(255,200,80,.12) inset;
+}
+
+.file-label:hover {
+  background: linear-gradient(180deg, var(--clr-gold) 0%, var(--clr-gold-dark) 100%);
+  color: #fff8e0;
+  border-color: var(--clr-gold-dark);
+}
+
+#file_input_field {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.upload-submit-btn {
+  width: 100%;
+}
 </style>
 
 <script>
@@ -899,22 +1019,26 @@
     });
     // ▲▲ ここまで追加 ▲▲
 
+    // 💡 修正後：写真投稿モーダルの開閉処理
     if (uploadBtn && uploadModal) {
       uploadBtn.addEventListener('click', () => {
-        uploadModal.style.display = 'block';
+        uploadModal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // 背景のスクロール防止（活動記録モーダルと同じ処理）
       });
     }
 
     if (closeModal && uploadModal) {
       closeModal.addEventListener('click', () => {
-        uploadModal.style.display = 'none';
+        uploadModal.classList.remove('active');
+        document.body.style.overflow = '';
       });
     }
 
     if (uploadModal) {
       window.addEventListener('click', (e) => {
         if (e.target === uploadModal) {
-          uploadModal.style.display = 'none';
+          uploadModal.classList.remove('active');
+          document.body.style.overflow = '';
         }
       });
     }
