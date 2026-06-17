@@ -12,12 +12,22 @@
     <%= form_with url: login_path, method: :post, class: "login-form" do |f| %>
       <div class="form-group">
         <%= f.label :username, "ユーザー名" %>
-        <%= f.text_field :username, required: true, placeholder: "ユーザー名を入力してください" %>
+        <%= f.text_field :username, 
+              required: true, 
+              placeholder: "ユーザー名を入力してください",
+              pattern: "^[!-~]+$",
+              title: "半角英数字・記号のみで入力してください",
+              autocapitalize: "off" %>
       </div>
 
       <div class="form-group">
         <%= f.label :password, "パスワード" %>
-        <%= f.password_field :password, required: true, placeholder: "パスワードを入力してください" %>
+        <%= f.password_field :password, 
+              required: true, 
+              placeholder: "パスワードを入力してください",
+              pattern: "^[!-~]+$",
+              title: "半角英数字・記号のみで入力してください",
+              autocapitalize: "off" %>
       </div>
 
       <%= f.submit "ログイン", class: "btn btn-primary btn-block" %>
@@ -156,4 +166,27 @@
       font-size: 24px;
     }
   }
+  /* 自動入力（オートコンプリート）時の背景白化を防ぐ */
+.login-form .form-group input:-webkit-autofill,
+.login-form .form-group input:-webkit-autofill:hover, 
+.login-form .form-group input:-webkit-autofill:focus {
+  /* 背景色の変化を5000秒遅延させて、実質的に透過にする */
+  transition: background-color 5000s ease-in-out 0s;
+  /* 文字色は追加していただいた「黒（#000000）」をキープする */
+  -webkit-text-fill-color: #000000 !important;
+}
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ユーザー名とパスワードの入力欄を取得
+    const inputFields = document.querySelectorAll('.login-form input[type="text"], .login-form input[type="password"]');
+
+    inputFields.forEach(input => {
+      input.addEventListener('input', (e) => {
+        // 半角英数字・記号 (ASCII 33~126) 以外の文字が入力されたら空文字に置換して削除
+        e.target.value = e.target.value.replace(/[^!-~]/g, '');
+      });
+    });
+  });
+</script>
