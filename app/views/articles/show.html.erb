@@ -2,7 +2,7 @@
   
   <div style="margin-bottom: 24px; display: flex; gap: 12px;">
     <%= link_to "◀ トップページ", root_path, class: "btn btn-secondary btn-sm" %>
-    <%= link_to "◀ 記事一覧", articles_path, class: "btn btn-secondary btn-sm" %>
+    <%= link_to "◀ 活動記録一覧", articles_path, class: "btn btn-secondary btn-sm" %>
   </div>
 
   <article class="page-content" style="padding: 40px;">
@@ -69,8 +69,8 @@
 
     <% if current_user && (current_user == @article.user || current_user.admin?) %>
       <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
-        <button type="button" class="btn btn-primary" onclick="openEditModal()">この記事を編集</button>
-        <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この記事を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
+        <button type="button" class="btn btn-primary" onclick="openEditModal()">この活動記録を編集</button>
+        <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この活動記録を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
       </div>
     <% end %>
     
@@ -80,7 +80,7 @@
 <div id="editArticleModal" class="modal-overlay" style="display: none;">
   <div class="modal-wrapper">
     <div class="modal-header-custom">
-      <h2>記事の編集</h2>
+      <h2>活動記録の編集</h2>
       <span class="modal-close-custom" onclick="closeEditModal()">&times;</span>
     </div>
     

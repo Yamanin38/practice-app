@@ -10,8 +10,8 @@
         <h2>MENU</h2>
         <ul class="dense-menu">
           <li><%= link_to "▶ チーム概要", about_path %></li>
-          <li><%= link_to "▶ 記事一覧", articles_path %></li>
           <li><%= link_to "▶ ギャラリー", gallery_path %></li>
+          <li><%= link_to "▶ 活動記録一覧", articles_path %></li>
           <li><%= link_to "▶ 入隊案内", recruitment_path %></li>
           <li><%= link_to "▶ チーム規約", rules_path %></li>
           <li><%= link_to "▶ お問い合わせ", contact_path %></li>
@@ -38,7 +38,7 @@
       <% end %>
     </ul>
   <% else %>
-    <p class="empty-text">新着記事はまだありません。</p>
+    <p class="empty-text">新着活動記録はまだありません。</p>
   <% end %>
 </section>
 
