@@ -1,7 +1,7 @@
 <div class="container">
   <header class="page-header">
     <h1>お問い合わせ</h1>
-    <p>ご質問やご要望をお知らせください</p>
+    <p>このサイトに関してのご質問やご要望などがあればお知らせください</p>
   </header>
 
   <div class="page-content">
@@ -69,6 +69,70 @@
 
   .form-group input, .form-group textarea {
     color: #000000;
+  }
+
+  /* お問い合わせフォーム全体を囲むセクションを中央寄せ */
+  .contact-form-section {
+    max-width: 600px;      /* フォームの最大幅（お好みで調整してください） */
+    margin: 0 auto;        /* 左右のマージンを自動にして中央寄せ */
+    padding: 20px;         /* 内側の余白 */
+  }
+
+  /* フォームのタイトル（h2）を中央揃えにする場合（お好みで） */
+  .contact-form-section h2 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* フォーム要素自体の横幅をセクションいっぱいに広げる */
+  .contact-form {
+    width: 100%;
+  }
+
+  /* 送信ボタンも中央に配置したい場合 */
+  .contact-form .btn {
+    display: block;
+    width: 100%;          /* ボタンを横幅いっぱいに広げる場合 */
+    /* width: 200px; margin: 0 auto; /* ボタンの幅を固定して中央寄せにする場合はこちら */
+  }
+
+  /* ★追加：外側のボックス自体を600pxに制限して中央寄せにする */
+  .page-content {
+    max-width: 600px;
+    margin: 0 auto;
+    /* もし背景や枠線との隙間が気になる場合は padding: 20px 30px; などを追加してください */
+  }
+
+  .contact-view {
+    margin-top: 30px;
+    margin-bottom: 40px;
+  }
+
+  /* ★修正：max-width と margin を削除し、横幅いっぱい（上の600pxに合わせる）にする */
+  .contact-form-section {
+    width: 100%;
+    padding: 20px 0; /* 左右の余白を0にして、外枠いっぱいに広げる */
+  }
+
+  .contact-form-section h2 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .contact-form {
+    width: 100%;
+  }
+
+  /* .form-group input, .form-group textarea などの既存のスタイルはそのまま */
+  .form-group input,
+  .form-group textarea {
+    color: #000000;
+  }
+
+  /* 送信ボタン（前回の残りがあればそのまま） */
+  .contact-form .btn {
+    display: block;
+    width: 100%;
   }
 
   @media (max-width: 768px) {
