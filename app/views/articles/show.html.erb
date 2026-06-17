@@ -302,7 +302,13 @@
     box-shadow: 0 8px 24px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,200,80,.12);
   }
   .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .cal-title { font-weight: 700; font-size: 15px; color: #e8a820; }
+  .cal-title { font-weight: 700; font-size: 15px; color: #e8a820; position: absolute; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none; /* 矢印がクリックできなくなるのを防ぐ */
+  /* 追加: これにより中身の要素（年と月）が強制的に横並びになります */
+  white-space: nowrap;}
   .cal-nav {
     background: linear-gradient(180deg, #3a2108 0%, #241400 100%);
     border: 1px solid #5a3510; border-radius: 4px; font-size: 18px;
@@ -331,8 +337,20 @@
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e8a820' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat; background-position: right 4px center; background-size: 14px;
+    text-align: center;         /* 一部のブラウザ用 */
+  text-align-last: center;    /* select内のテキストを中央寄せにする主要プロパティ */
+  padding: 2px 24px 2px 8px;  /* 既存のパディング */
   }
   .cal-year-select option { background-color: #3a2108; color: #e8d5b0; }
+  .cal-year-select, #artCalMonthText, #calMonthText {
+  pointer-events: auto;
+}
+.cal-nav {
+  z-index: 1; /* 矢印をタイトルより前面に */
+}
+#calMonthText {
+  margin-left: 6px;
+}
 </style>
 
 <script>
