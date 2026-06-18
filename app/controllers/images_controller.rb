@@ -23,8 +23,13 @@ class ImagesController < ApplicationController
   end
 
   def destroy
+    if @image.article_images.exists?
+    article_titles = @image.article_images.includes(:article).map { |ai| ai.article.title }
+    redirect_to gallery_path, alert: "この画像は以下の活動記録で使用されているため削除できません：#{article_titles.join('、')}", status: :see_other
+  else
     @image.destroy
     redirect_to gallery_path, notice: "画像を削除しました", status: :see_other
+  end
   end
 
   private

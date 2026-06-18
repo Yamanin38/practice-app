@@ -45,13 +45,14 @@
   <div class="gallery-item" onclick="openImageModal(<%= image.id %>, '<%= current_user&.admin? %>')">
     <% if image.file.present? %>
       <%= image_tag image.file.representation(resize_to_fill: [400, 400]),
-          alt: "Gallery image",
-          class: "gallery-image",
-          data: {
-            image_id: image.id,
-            full_url: url_for(image.file),
-            file_size: image.file.blob.byte_size
-          } %>
+    alt: "Gallery image",
+    class: "gallery-image",
+    data: {
+      image_id: image.id,
+      full_url: url_for(image.file),
+      file_size: image.file.blob.byte_size,
+      used_in_articles: image.article_images.includes(:article).map { |ai| ai.article.title }.to_json
+    } %>
     <% end %>
     <div class="gallery-overlay">
       <p class="upload-date"><%= image.created_at.strftime("%Y年%m月%d日") %></p>
@@ -122,6 +123,23 @@
         </form>
       <% end %>
       <button class="btn btn-secondary" id="closeImageModalBtn">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 削除不可モーダル -->
+<div class="modal" id="cannotDeleteModal">
+  <div class="modal-content modal-sm" style="margin: 120px auto;">
+    <div class="modal-header">
+      <h2>⚠️ 削除できません</h2>
+      <button class="modal-close" id="closeCannotDeleteModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--clr-text); margin-bottom: 16px;">この写真は以下の活動記録に使用されているため削除できません。</p>
+      <ul id="cannotDeleteArticleList" style="color: var(--clr-gold-light); padding-left: 20px; margin-bottom: 20px;"></ul>
+      <div style="text-align: right;">
+        <button class="btn btn-secondary" id="closeCannotDeleteBtn">閉じる</button>
+      </div>
     </div>
   </div>
 </div>
@@ -997,6 +1015,35 @@
     const closeModal = document.getElementById('closeModal');
     const dateFilter = document.querySelector('.date-filter');
 
+    // 削除ボタン押下時に紐づきチェック
+    const modalDeleteForm = document.getElementById('modalDeleteForm');
+    if (modalDeleteForm) {
+      modalDeleteForm.addEventListener('submit', (e) => {
+        const modal = document.getElementById('imageViewModal');
+        const imageId = modal.dataset.currentImageId;
+        const imgElement = document.querySelector(`[data-image-id="${imageId}"]`);
+        const usedInArticles = imgElement ? JSON.parse(imgElement.dataset.usedInArticles || '[]') : [];
+
+        if (usedInArticles.length > 0) {
+          e.preventDefault(); // フォーム送信をキャンセル
+          // 拡大モーダルを閉じる
+          modal.classList.remove('active');
+          // 削除不可モーダルを表示
+          const list = document.getElementById('cannotDeleteArticleList');
+          const maxShow = 5;
+          const shown = usedInArticles.slice(0, maxShow);
+          const remaining = usedInArticles.length - maxShow;
+          let html = shown.map(title => `<li>${title}</li>`).join('');
+          if (remaining > 0) {
+            html += `<li style="color: var(--clr-text-muted);">他 ${remaining} 件</li>`;
+          }
+          list.innerHTML = html;
+          
+          document.getElementById('cannotDeleteModal').style.display = 'block';
+        }
+      });
+    }
+
     // ▼▼ ここから追加: カレンダーの年プルダウンを生成する処理 ▼▼
     // ── 修正後 ──
     const yearSelect = document.getElementById('calYearSelect');
@@ -1018,6 +1065,20 @@
       renderCalendar(); // カレンダーを再描画
     });
     // ▲▲ ここまで追加 ▲▲
+
+    // 削除不可モーダルの閉じるボタン
+const closeCannotDeleteModal = document.getElementById('closeCannotDeleteModal');
+const closeCannotDeleteBtn = document.getElementById('closeCannotDeleteBtn');
+if (closeCannotDeleteModal) {
+  closeCannotDeleteModal.addEventListener('click', () => {
+    document.getElementById('cannotDeleteModal').style.display = 'none';
+  });
+}
+if (closeCannotDeleteBtn) {
+  closeCannotDeleteBtn.addEventListener('click', () => {
+    document.getElementById('cannotDeleteModal').style.display = 'none';
+  });
+}
 
     // 💡 修正後：写真投稿モーダルの開閉処理
     if (uploadBtn && uploadModal) {
@@ -1075,6 +1136,8 @@ function openImageModal(imageId, isAdmin) {
   }
   if (deleteForm) deleteForm.action = `/images/${imageId}`;
 
+  // 現在表示中の画像IDを記憶しておく
+  modal.dataset.currentImageId = imageId;
   modal.classList.add('active');
 }
 
