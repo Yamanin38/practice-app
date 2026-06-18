@@ -71,9 +71,8 @@
               <div class="article-actions">
                 <%= link_to "編集", article_path(article, edit: true), class: "btn btn-secondary btn-sm" %>
                 <% if current_user.admin? %>
-                  <%= button_to "削除", article_path(article), method: :delete,
-                      class: "btn btn-danger btn-sm",
-                      data: { confirm: "本当に削除しますか？" } %>
+                  <button type="button" class="btn btn-danger btn-sm"
+                    onclick="openDeleteConfirmModal('<%= article_path(article) %>', event)">削除</button>
                 <% end %>
               </div>
             <% end %>
@@ -222,6 +221,27 @@
       </form>
     </div>
   </div>
+
+  <!-- 削除確認モーダル -->
+<div class="modal" id="deleteConfirmModal">
+  <div class="modal-content modal-sm" style="margin: 120px auto;">
+    <div class="modal-header">
+      <h2>🗑️ 削除の確認</h2>
+      <button class="modal-close" id="closeDeleteConfirmModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--clr-text); margin-bottom: 24px;">本当にこの活動記録を削除しますか？<br>元に戻すことはできません。</p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+  <button class="btn btn-secondary" id="cancelDeleteBtn" style="padding: 9px 22px; font-size: 13px; line-height: 1.4;">キャンセル</button>
+  <form id="deleteArticleForm" method="POST" style="margin: 0;">
+    <input type="hidden" name="_method" value="delete">
+    <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+    <button type="submit" class="btn btn-danger" style="padding: 9px 22px; font-size: 13px; line-height: 1.4;">削除する</button>
+  </form>
+</div>
+    </div>
+  </div>
+</div>
 </div>
 
 <style>
@@ -1510,4 +1530,22 @@ if (cancelEdit) {
       });
     });
   });
+
+  // 削除確認モーダル
+function openDeleteConfirmModal(actionUrl, e) {
+  e.stopPropagation(); // カードクリックへの伝播を防ぐ
+  document.getElementById('deleteArticleForm').action = actionUrl;
+  document.getElementById('deleteConfirmModal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('closeDeleteConfirmModal').addEventListener('click', () => {
+  document.getElementById('deleteConfirmModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+
+document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+  document.getElementById('deleteConfirmModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
 </script>

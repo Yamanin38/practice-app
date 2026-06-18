@@ -71,7 +71,8 @@
       <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
         <button type="button" class="btn btn-primary" onclick="openEditModal()">この活動記録を編集</button>
         <% if current_user.admin? %>
-          <%= button_to "削除する", article_path(@article), method: :delete, data: { turbo_confirm: "この活動記録を削除しますか？\n元に戻すことはできません。" }, class: "btn btn-danger" %>
+          <button type="button" class="btn btn-danger"
+            onclick="openDeleteConfirmModal()">削除する</button>
         <% end %>
       </div>
     <% end %>
@@ -171,6 +172,22 @@
   <img id="lightboxImage" class="lightbox-content">
 </div>
 
+<!-- 削除確認モーダル -->
+<div id="deleteConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center;">
+  <div style="background: var(--clr-surface); border: 1px solid var(--clr-border-lite); border-radius: var(--radius-lg); width: 90%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,.9); animation: slideDown .3s ease;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--clr-border); background: var(--clr-surface-3); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+      <h2 style="font-family: var(--font-heading); margin: 0; font-size: 1.05rem; color: var(--clr-gold-light);">🗑️ 削除の確認</h2>
+      <button id="closeDeleteConfirmModal" style="background: none; border: none; font-size: 1.5rem; color: var(--clr-text-muted); cursor: pointer; line-height: 1; padding: 3px 7px;">&times;</button>
+    </div>
+    <div style="padding: 24px 28px;">
+      <p style="color: var(--clr-text); margin-bottom: 24px;">本当にこの活動記録を削除しますか？<br>元に戻すことはできません。</p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="cancelDeleteBtn">キャンセル</button>
+        <%= button_to "削除する", article_path(@article), method: :delete, class: "btn btn-danger", form: { style: "margin: 0;" } %>
+      </div>
+    </div>
+  </div>
+</div>
 <style>
   /* ライトボックスの背景（扉アニメーションの上に来るようz-indexを高めに設定） */
   .lightbox-overlay {
@@ -601,5 +618,23 @@
 
     renderCalendar();
   });
+
+
+// 変更後
+function openDeleteConfirmModal() {
+  const modal = document.getElementById('deleteConfirmModal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+document.getElementById('closeDeleteConfirmModal').addEventListener('click', () => {
+  document.getElementById('deleteConfirmModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
+
+document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+  document.getElementById('deleteConfirmModal').style.display = 'none';
+  document.body.style.overflow = '';
+});
 
 </script>
