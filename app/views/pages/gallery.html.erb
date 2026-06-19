@@ -127,6 +127,23 @@
   </div>
 </div>
 
+<!-- 削除確認モーダル -->
+<div class="modal" id="deleteConfirmModal">
+  <div class="modal-content modal-sm" style="margin: 120px auto;">
+    <div class="modal-header">
+      <h2>🗑️ 削除の確認</h2>
+      <button class="modal-close" id="closeDeleteConfirmModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--clr-text); margin-bottom: 24px;">本当にこの写真を削除しますか？<br>元に戻すことはできません。</p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+  <button class="btn btn-danger4" id="confirmImageDeleteBtn">削除する</button>
+  <button class="btn btn-secondary" id="cancelImageDeleteBtn">キャンセル</button>
+</div>
+    </div>
+  </div>
+</div>
+
 <!-- 削除不可モーダル -->
 <div class="modal" id="cannotDeleteModal">
   <div class="modal-content modal-sm" style="margin: 120px auto;">
@@ -674,6 +691,25 @@
   opacity: 0.85;
 }
 
+
+.btn-danger4 {
+    background: linear-gradient(180deg, #c0392b 0%, #922b21 100%);
+    color: #fff;
+    border: 1px solid #7b241c;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+    padding: 9px 28px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255, 100, 80, .25) inset, 0 3px 8px rgba(0, 0, 0, .6);
+    transition: filter .15s, box-shadow .15s;
+  }
+
+  .btn-danger4:hover { filter: brightness(1.15); }
+
+
+
 .image-modal-footer .btn-secondary {
   background: rgba(255, 255, 255, 0.15);
   color: white;
@@ -1019,13 +1055,15 @@
     const modalDeleteForm = document.getElementById('modalDeleteForm');
     if (modalDeleteForm) {
       modalDeleteForm.addEventListener('submit', (e) => {
+        // 常にいったんブラウザのネイティブ送信を止め、確認モーダルを経由させる
+        e.preventDefault();
+
         const modal = document.getElementById('imageViewModal');
         const imageId = modal.dataset.currentImageId;
         const imgElement = document.querySelector(`[data-image-id="${imageId}"]`);
         const usedInArticles = imgElement ? JSON.parse(imgElement.dataset.usedInArticles || '[]') : [];
 
         if (usedInArticles.length > 0) {
-          e.preventDefault(); // フォーム送信をキャンセル
           // 拡大モーダルを閉じる
           modal.classList.remove('active');
           // 削除不可モーダルを表示
@@ -1038,11 +1076,34 @@
             html += `<li style="color: var(--clr-text-muted);">他 ${remaining} 件</li>`;
           }
           list.innerHTML = html;
-          
+
           document.getElementById('cannotDeleteModal').style.display = 'block';
+        } else {
+          // 削除可能な場合は確認モーダルを表示する
+          document.getElementById('deleteConfirmModal').style.display = 'block';
         }
       });
     }
+
+    // 削除確認モーダルの「削除する」ボタン → 本当にフォームを送信する
+    const confirmImageDeleteBtn = document.getElementById('confirmImageDeleteBtn');
+    if (confirmImageDeleteBtn) {
+      confirmImageDeleteBtn.addEventListener('click', () => {
+        document.getElementById('deleteConfirmModal').style.display = 'none';
+        modalDeleteForm.submit();
+      });
+    }
+
+    // 削除確認モーダルの「キャンセル」「✕」 → 閉じるだけ
+    const cancelImageDeleteBtn = document.getElementById('cancelImageDeleteBtn');
+    const closeDeleteConfirmModal = document.getElementById('closeDeleteConfirmModal');
+    [cancelImageDeleteBtn, closeDeleteConfirmModal].forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', () => {
+          document.getElementById('deleteConfirmModal').style.display = 'none';
+        });
+      }
+    });
 
     // ▼▼ ここから追加: カレンダーの年プルダウンを生成する処理 ▼▼
     // ── 修正後 ──

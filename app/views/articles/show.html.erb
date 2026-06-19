@@ -182,8 +182,8 @@
     <div style="padding: 24px 28px;">
       <p style="color: var(--clr-text); margin-bottom: 24px;">本当にこの活動記録を削除しますか？<br>元に戻すことはできません。</p>
       <div style="display: flex; gap: 12px; justify-content: flex-end;">
-        <button class="btn btn-secondary" id="cancelDeleteBtn">キャンセル</button>
         <%= button_to "削除する", article_path(@article), method: :delete, class: "btn btn-danger", form: { style: "margin: 0;" } %>
+        <button class="btn btn-secondary" id="cancelDeleteBtn">キャンセル</button>
       </div>
     </div>
   </div>

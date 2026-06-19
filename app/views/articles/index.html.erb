@@ -71,7 +71,7 @@
               <div class="article-actions">
                 <%= link_to "編集", article_path(article, edit: true), class: "btn btn-secondary btn-sm" %>
                 <% if current_user.admin? %>
-                  <button type="button" class="btn btn-danger btn-sm"
+                  <button type="button" class="btn btn-danger2 btn-sm"
                     onclick="openDeleteConfirmModal('<%= article_path(article) %>', event)">削除</button>
                 <% end %>
               </div>
@@ -232,12 +232,13 @@
     <div class="modal-body">
       <p style="color: var(--clr-text); margin-bottom: 24px;">本当にこの活動記録を削除しますか？<br>元に戻すことはできません。</p>
       <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
-  <button class="btn btn-secondary" id="cancelDeleteBtn" style="padding: 9px 22px; font-size: 13px; line-height: 1.4;">キャンセル</button>
+  <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
   <form id="deleteArticleForm" method="POST" style="margin: 0;">
     <input type="hidden" name="_method" value="delete">
     <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-    <button type="submit" class="btn btn-danger" style="padding: 9px 22px; font-size: 13px; line-height: 1.4;">削除する</button>
+    <button type="submit" class="btn btn-danger3">削除する</button>
   </form>
+  <button class="btn btn-secondary" id="cancelDeleteBtn">キャンセル</button>
 </div>
     </div>
   </div>
@@ -514,8 +515,8 @@
     gap: 8px;
   }
 
-  .btn-danger {
-    background: #e74c3c;
+  .btn-danger2 {
+    background: linear-gradient(180deg, #c0392b 0%, #922b21 100%);
     color: white;
     border: none;
     padding: 6px 14px;
@@ -525,7 +526,23 @@
     font-weight: 600;
   }
 
-  .btn-danger:hover { background: #c0392b; }
+  .btn-danger2:hover { filter: brightness(1.15); }
+
+  .btn-danger3 {
+    background: linear-gradient(180deg, #c0392b 0%, #922b21 100%);
+    color: #fff;
+    border: 1px solid #7b241c;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+    padding: 9px 28px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255, 100, 80, .25) inset, 0 3px 8px rgba(0, 0, 0, .6);
+    transition: filter .15s, box-shadow .15s;
+  }
+
+  .btn-danger3:hover { filter: brightness(1.15); }
 
   .image-picker {
     display: grid;
