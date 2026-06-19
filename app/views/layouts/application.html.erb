@@ -63,6 +63,32 @@
       const userName = document.getElementById('userName');
       const userRole = document.getElementById('userRole');
 
+      // ============================================================
+      // データベース処理に紐づくボタンの二重送信防止（グレーアウト）
+      // ============================================================
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('form').forEach((form) => {
+          form.addEventListener('submit', (e) => {
+            if (e.defaultPrevented) return; // すでに別処理でキャンセルされている場合は何もしない
+
+            const submitBtns = form.querySelectorAll(
+              'button[type="submit"], input[type="submit"]'
+            );
+
+            submitBtns.forEach((btn) => {
+              btn.disabled = true;
+              if (btn.tagName === 'INPUT') {
+                btn.dataset.originalValue = btn.value;
+                btn.value = '処理中...';
+              } else {
+                btn.dataset.originalHtml = btn.innerHTML;
+                btn.innerHTML = '処理中...';
+              }
+            });
+          });
+        });
+      });
+
       // ログイン状態をチェック（Rails session から取得、サーバーサイド）
       function checkLoginStatus() {
         const userElement = document.querySelector('[data-current-user]');
@@ -86,6 +112,8 @@
       checkLoginStatus();
 
       logoutBtn.addEventListener('click', () => {
+      logoutBtn.disabled = true;            // ← 追加
+      logoutBtn.textContent = '処理中...';   // ← 追加
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = '/logout';
