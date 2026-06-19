@@ -1,24 +1,41 @@
 class ImagesController < ApplicationController
+  MAX_UPLOAD_COUNT = 4
+
   before_action :authenticate_user!, except: []
   before_action :set_image, only: [:destroy]
   before_action :authorize_admin!, only: [:destroy]
 
   def create
-    @image = current_user.images.build
+    files = Array(params[:files] || params[:file]).reject(&:blank?).first(MAX_UPLOAD_COUNT)
 
-    if params[:file].present?
-      compressed = compress_image(params[:file])
-      @image.file.attach(
-        io: compressed[:io],
-        filename: params[:file].original_filename,
-        content_type: "image/jpeg"
-      )
+    if files.empty?
+      redirect_to gallery_path, alert: "画像を選択してください", status: :see_other
+      return
     end
 
-    if @image.save
-      redirect_to gallery_path, status: :see_other
+    saved_images = []
+    failed = false
+
+    files.each do |file|
+      image = current_user.images.build
+      compressed = compress_image(file)
+      image.file.attach(
+        io: compressed[:io],
+        filename: file.original_filename,
+        content_type: "image/jpeg"
+      )
+
+      if image.save
+        saved_images << image
+      else
+        failed = true
+      end
+    end
+
+    if failed
+      redirect_to gallery_path, alert: "一部の画像のアップロードに失敗しました（#{saved_images.size}/#{files.size}枚成功）", status: :see_other
     else
-      redirect_to gallery_path, alert: "画像のアップロードに失敗しました", status: :see_other
+      redirect_to gallery_path, status: :see_other
     end
   end
 

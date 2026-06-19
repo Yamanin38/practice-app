@@ -84,21 +84,21 @@
         <h2>写真を投稿</h2>
 
         <%= form_with url: images_path, method: :post, local: true, multipart: true, class: "upload-form" do |f| %>
-          <div class="upload-preview-area" id="uploadPreviewArea">
-            <div class="upload-placeholder" id="uploadPlaceholder">
-              <p class="upload-icon">🖼️</p>
-              <p class="upload-hint">ファイルを選択、またはここにドラッグ＆ドロップ</p>
-            </div>
-            <img id="uploadPreviewImage" class="upload-preview-image" style="display:none;" alt="プレビュー">
+        <div class="upload-preview-area" id="uploadPreviewArea">
+          <div class="upload-placeholder" id="uploadPlaceholder">
+            <p class="upload-icon">🖼️</p>
+            <p class="upload-hint">ファイルを選択、またはここにドラッグ＆ドロップ（最大4枚）</p>
           </div>
-          
-          <div class="upload-file-group">
-            <label for="file_input_field" class="file-label">画像を選択</label>
-            <%= f.file_field :file, accept: "image/*", required: true, id: "file_input_field" %>
-          </div>
-          
-          <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn", id: "submitBtn", disabled: true %>
-        <% end %>
+          <div class="upload-preview-grid" id="uploadPreviewGrid" style="display:none;"></div>
+        </div>
+
+        <div class="upload-file-group">
+          <label for="file_input_field" class="file-label">画像を選択（最大4枚）</label>
+          <%= f.file_field :files, multiple: true, accept: "image/*", required: true, id: "file_input_field", name: "files[]" %>
+        </div>
+
+        <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn", id: "submitBtn", disabled: true %>
+      <% end %>
       </div>
     </div>
   <% end %>
@@ -781,20 +781,14 @@
 
 .upload-preview-area {
   width: 100%;
-  aspect-ratio: 1;
-  max-height: 300px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  border: 2px dashed #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  height: auto;
+  aspect-ratio: auto;
+  min-height: 120px;
+  max-height: none;
 }
 
 .upload-placeholder {
-  text-align: center;
-  color: #aaa;
+  max-height: 300px;
 }
 
 .upload-icon {
@@ -891,6 +885,54 @@
     }
   }
 
+  .upload-preview-area {
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.upload-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  padding: 4px;
+}
+
+.upload-preview-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--clr-border);
+}
+
+.upload-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.upload-preview-thumb .remove-thumb {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
   /* カレンダーの年選択プルダウンのスタイル */
 .cal-year-select {
   background-color: transparent;
@@ -972,7 +1014,6 @@
 .upload-preview-area {
   width: 100%;
   aspect-ratio: 1;
-  max-height: 300px;
   background: var(--clr-bg);
   border-radius: var(--radius-sm);
   border: 2px dashed var(--clr-border);
@@ -1058,14 +1099,6 @@
   border-color: var(--clr-gold-light, #e8a820); /* 枠線をハイライト色に */
   background: rgba(232, 168, 32, 0.1);          /* 背景を少し明るく */
   border-style: solid;                          /* 破線から実線に変更して強調 */
-}
-/* ★ 画像が選択されたときの枠線エリア（元の正方形設定を解除） */
-.upload-preview-area.has-image {
-  width: fit-content !important;  /* 横幅を中身（画像）に合わせる */
-  height: fit-content !important; /* 高さも中身（画像）に合わせる */
-  aspect-ratio: auto !important;  /* 元の aspect-ratio: 1; を強制解除 */
-  padding: 4px;                   /* 画像の周りの少しの余白 */
-  margin: 0 auto 20px auto;       /* 中央寄せ ＆ 下部の余白維持 */
 }
 
 /* ★ プレビュー画像自体の設定（元の100%設定を解除して本来の比率にする） */
@@ -1284,112 +1317,110 @@ window.addEventListener('click', (e) => {
 const fileInputField = document.getElementById('file_input_field');
 const uploadPreviewArea = document.getElementById('uploadPreviewArea');
 const submitBtn = document.getElementById('submitBtn');
+const uploadModal = document.getElementById('uploadModal');
+const closeModalBtn = document.getElementById('closeModal'); // ← 元のHTMLのID（closeModal）に合わせる
+const MAX_FILES = 4;
 
-// ★新しく追加：モーダルの要素、または閉じるボタンを取得
-// （お使いのHTMLに合わせてIDやクラス名を調整してください）
-const uploadModal = document.getElementById('uploadModal'); // モーダル本体
-const closeModalBtn = document.getElementById('closeModalBtn'); // 閉じるボタン（ある場合）
+let selectedFiles = [];
 
-if (fileInputField && uploadPreviewArea) {
-  
-  // プレビュー表示処理
-  const handlePreview = (file) => {
-    if (!file) return;
+function renderPreview() {
+  const placeholder = document.getElementById('uploadPlaceholder');
+  const grid = document.getElementById('uploadPreviewGrid');
 
-    if (!file.type.startsWith('image/')) {
-      alert('画像ファイルを選択してください。');
-      return;
-    }
+  if (selectedFiles.length === 0) {
+    placeholder.style.display = 'block';
+    grid.style.display = 'none';
+    grid.innerHTML = '';
+    submitBtn.disabled = true;
+    uploadPreviewArea.classList.remove('has-image');
+    return;
+  }
 
+  placeholder.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = '';
+  uploadPreviewArea.classList.add('has-image');
+
+  selectedFiles.forEach((file, index) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const preview = document.getElementById('uploadPreviewImage');
-      const placeholder = document.getElementById('uploadPlaceholder');
-      preview.src = event.target.result;
-      preview.style.display = 'block';
-      placeholder.style.display = 'none';
+    reader.onload = (e) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'upload-preview-thumb';
+      thumb.innerHTML = `<img src="${e.target.result}" alt="プレビュー${index + 1}">
+        <button type="button" class="remove-thumb" data-index="${index}">&times;</button>`;
+      grid.appendChild(thumb);
 
-      // ★新しく追加：画像が挿入されたら枠線エリアにクラスを付与
-      if (uploadPreviewArea) {
-        uploadPreviewArea.classList.add('has-image');
-      }
-
-      if (submitBtn) {
-        submitBtn.disabled = false;
-      }
+      thumb.querySelector('.remove-thumb').addEventListener('click', () => {
+        selectedFiles.splice(index, 1);
+        syncFileInput();
+        renderPreview();
+      });
     };
     reader.readAsDataURL(file);
-  };
-
-  // ★新しく追加：フォームとプレビューを完全に初期化する関数
-  const resetUploadForm = () => {
-    // 1. ファイル入力を空にする（これで選択が解除されます）
-    fileInputField.value = '';
-    
-    // 2. プレビュー画像を非表示にしてsrcをクリア
-    const preview = document.getElementById('uploadPreviewImage');
-    if (preview) {
-      preview.src = '';
-      preview.style.display = 'none';
-    }
-
-    // 3. 初期状態のプレースホルダー（文字やアイコン）を再表示
-    const placeholder = document.getElementById('uploadPlaceholder');
-    if (placeholder) {
-      placeholder.style.display = 'block';
-    }
-
-    // 4. 投稿ボタンを再びグレーアウト（無効化）
-    if (submitBtn) {
-      submitBtn.disabled = true;
-    }
-
-    // 5. ドラッグ＆ドロップのハイライトが残っていれば解除
-    uploadPreviewArea.classList.remove('dragover');
-  };
-
-  // ① 既存のファイル選択時の処理
-  fileInputField.addEventListener('change', (e) => {
-    handlePreview(e.target.files[0]);
   });
 
-  // ② ドラッグオーバー
+  submitBtn.disabled = false;
+}
+
+function syncFileInput() {
+  const dt = new DataTransfer();
+  selectedFiles.forEach(file => dt.items.add(file));
+  fileInputField.files = dt.files;
+}
+
+function addFiles(fileList) {
+  const incoming = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+
+  if (incoming.length === 0) {
+    alert('画像ファイルを選択してください。');
+    return;
+  }
+
+  if (selectedFiles.length + incoming.length > MAX_FILES) {
+    alert(`画像は最大${MAX_FILES}枚までしか選択できません。`);
+    return;
+  }
+
+  selectedFiles = selectedFiles.concat(incoming);
+  syncFileInput();
+  renderPreview();
+}
+
+function resetUploadForm() {
+  selectedFiles = [];
+  fileInputField.value = '';
+  uploadPreviewArea.classList.remove('dragover', 'has-image');
+  renderPreview();
+}
+
+if (fileInputField && uploadPreviewArea) {
+  fileInputField.addEventListener('change', (e) => {
+    addFiles(e.target.files);
+  });
+
   uploadPreviewArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     uploadPreviewArea.classList.add('dragover');
   });
 
-  // ③ ドラッグリーブ
   uploadPreviewArea.addEventListener('dragleave', (e) => {
     e.preventDefault();
     uploadPreviewArea.classList.remove('dragover');
   });
 
-  // ④ ドロップ
   uploadPreviewArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadPreviewArea.classList.remove('dragover');
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      fileInputField.files = files;
-      handlePreview(files[0]);
-    }
+    addFiles(e.dataTransfer.files);
   });
 
-  // -------------------------------------------------------------
-  // ★新しく追加：モーダルが閉じられたときにリセット関数を呼び出す
-  // -------------------------------------------------------------
-  
-  // パターンA：Bootstrapを使用している場合（推奨：背景クリックで閉じても作動します）
+  // モーダルが閉じられたときにリセット
   if (uploadModal) {
-    // Bootstrapのモーダルが完全に隠れたときに発生するイベント
     uploadModal.addEventListener('hidden.bs.modal', () => {
       resetUploadForm();
     });
   }
 
-  // パターンB：自作の閉じるボタン（×ボタンなど）で制御している場合
   if (closeModalBtn) {
     closeModalBtn.addEventListener('click', () => {
       resetUploadForm();
