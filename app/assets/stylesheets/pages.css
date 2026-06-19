@@ -1729,6 +1729,12 @@ a.feature-card {
     .portal-container {
     padding: 30px 16px !important; /* 同様に、ポータルの内容もナビバーと被らないように上部の余白を広げる */
 }
+.sidebar-box {
+    display: none !important; /* スマホではサイドバーを完全に非表示にしてスペースを確保 */
+  }
+  .portal-layout {
+    gap: 0px !important; /* グリッドの隙間もなくす */
+  }
 }
 
 /* ============================================================
