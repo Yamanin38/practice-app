@@ -1059,6 +1059,24 @@
   background: rgba(232, 168, 32, 0.1);          /* 背景を少し明るく */
   border-style: solid;                          /* 破線から実線に変更して強調 */
 }
+/* ★ 画像が選択されたときの枠線エリア（元の正方形設定を解除） */
+.upload-preview-area.has-image {
+  width: fit-content !important;  /* 横幅を中身（画像）に合わせる */
+  height: fit-content !important; /* 高さも中身（画像）に合わせる */
+  aspect-ratio: auto !important;  /* 元の aspect-ratio: 1; を強制解除 */
+  padding: 4px;                   /* 画像の周りの少しの余白 */
+  margin: 0 auto 20px auto;       /* 中央寄せ ＆ 下部の余白維持 */
+}
+
+/* ★ プレビュー画像自体の設定（元の100%設定を解除して本来の比率にする） */
+.upload-preview-area.has-image #uploadPreviewImage {
+  width: auto !important;         /* 元の width: 100%; を強制解除 */
+  height: auto !important;        /* 元の height: 100%; を強制解除 */
+  max-width: 100%;                /* モーダルの横幅からはみ出さないように制限 */
+  max-height: 300px;              /* 縦に長すぎる画像がはみ出さないように制限 */
+  object-fit: contain;
+  display: block;
+}
 </style>
 
 <script>
@@ -1079,6 +1097,12 @@
     }
     if (placeholder) placeholder.style.display = 'block';
     if (submitBtn) submitBtn.disabled = true; // ボタンを再度グレーアウト
+
+    // ★新しく追加：リセット時はクラスを削除
+    if (uploadPreviewArea) {
+      uploadPreviewArea.classList.remove('dragover');
+      uploadPreviewArea.classList.remove('has-image'); 
+    }
     if (uploadPreviewArea) uploadPreviewArea.classList.remove('dragover');
   }
   // ▲▲ ここまで追加 ▲▲
@@ -1284,6 +1308,11 @@ if (fileInputField && uploadPreviewArea) {
       preview.src = event.target.result;
       preview.style.display = 'block';
       placeholder.style.display = 'none';
+
+      // ★新しく追加：画像が挿入されたら枠線エリアにクラスを付与
+      if (uploadPreviewArea) {
+        uploadPreviewArea.classList.add('has-image');
+      }
 
       if (submitBtn) {
         submitBtn.disabled = false;
