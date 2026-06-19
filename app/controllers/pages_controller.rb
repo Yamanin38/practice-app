@@ -27,7 +27,7 @@ end
 
     @team_profile = TeamProfile.singleton
     if @team_profile.update(content: params[:content])
-      redirect_to about_path, notice: "チーム概要を更新しました"
+      redirect_to about_path
     else
       redirect_to about_path, alert: "更新に失敗しました"
     end
@@ -45,7 +45,7 @@ end
 
     @team_profile = TeamProfile.singleton
     if @team_profile.update(recruitment_content: params[:content])
-      redirect_to recruitment_path, notice: "入隊案内を更新しました"
+      redirect_to recruitment_path
     else
       redirect_to recruitment_path, alert: "更新に失敗しました"
     end
@@ -63,7 +63,7 @@ end
 
     @team_profile = TeamProfile.singleton
     if @team_profile.update(rules_content: params[:content])
-      redirect_to rules_path, notice: "チーム規約を更新しました"
+      redirect_to rules_path
     else
       redirect_to rules_path, alert: "更新に失敗しました"
     end

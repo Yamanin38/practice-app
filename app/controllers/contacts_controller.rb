@@ -26,7 +26,6 @@ class ContactsController < ApplicationController
       # LINE通知の実行
       send_line_message(text)
 
-      flash[:notice] = "お問い合わせを送信しました。ご連絡ありがとうございます。"
       redirect_to contact_path
     else
       # 保存に失敗した場合（エラーがある場合）は、入力画面を再表示

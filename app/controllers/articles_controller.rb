@@ -24,7 +24,7 @@ end
     @article = current_user.articles.build(article_params)
     if @article.save
         attach_images(@article)
-        redirect_to articles_path, notice: "活動記録を投稿しました"
+        redirect_to articles_path
     else
         @all_images = Image.ordered_by_date
         redirect_to articles_path, alert: "投稿に失敗しました"
@@ -35,7 +35,7 @@ end
     if @article.update(article_params)
       @article.article_images.destroy_all
       attach_images(@article)
-      redirect_to article_path(@article), notice: "活動記録を更新しました"
+      redirect_to article_path(@article)
     else
       @all_images = Image.ordered_by_date
       redirect_to article_path(@article), alert: "更新に失敗しました"
@@ -44,7 +44,7 @@ end
 
   def destroy
     @article.destroy
-    redirect_to articles_path, notice: "活動記録を削除しました"
+    redirect_to articles_path
   end
 
   # ── ここから下はコントローラ内部だけで使う秘密のメソッド（private） ──

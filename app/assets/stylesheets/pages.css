@@ -725,12 +725,6 @@ a.feature-card {
   box-shadow: var(--shadow-raised);
 }
 
-.flash-notice {
-  background: linear-gradient(135deg, #0d3020, #0a2018);
-  color: #6ee7b7;
-  border-color: #1a6040;
-}
-
 .flash-alert {
   background: linear-gradient(135deg, #3a0d0d, #250808);
   color: #fca5a5;

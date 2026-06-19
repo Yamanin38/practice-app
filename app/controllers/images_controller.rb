@@ -16,7 +16,7 @@ class ImagesController < ApplicationController
     end
 
     if @image.save
-      redirect_to gallery_path, notice: "画像をアップロードしました", status: :see_other  # ← status追加
+      redirect_to gallery_path, status: :see_other
     else
       redirect_to gallery_path, alert: "画像のアップロードに失敗しました", status: :see_other
     end
@@ -28,7 +28,7 @@ class ImagesController < ApplicationController
     redirect_to gallery_path, alert: "この画像は以下の活動記録で使用されているため削除できません：#{article_titles.join('、')}", status: :see_other
   else
     @image.destroy
-    redirect_to gallery_path, notice: "画像を削除しました", status: :see_other
+    redirect_to gallery_path, status: :see_other
   end
   end
 
