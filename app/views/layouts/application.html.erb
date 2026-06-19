@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <%= favicon_link_tag('favicon.png') %>
     <title>Thrones Site - チームの紹介サイト</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
@@ -14,7 +15,7 @@
     <nav class="navbar" <% if current_user %>data-current-user='<%= { username: current_user.username, role: current_user.role }.to_json %>'<% end %>>
   <div class="navbar-container">
     <div class="navbar-logo">
-      <a href="/">チームサイト</a>
+      <a href="/">Thrones</a>
     </div>
 
     <ul class="nav-menu" id="navMenu">
