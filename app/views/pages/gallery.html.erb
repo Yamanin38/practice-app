@@ -87,7 +87,7 @@
           <div class="upload-preview-area" id="uploadPreviewArea">
             <div class="upload-placeholder" id="uploadPlaceholder">
               <p class="upload-icon">🖼️</p>
-              <p class="upload-hint">ファイルを選択してください</p>
+              <p class="upload-hint">ファイルを選択、またはここにドラッグ＆ドロップ</p>
             </div>
             <img id="uploadPreviewImage" class="upload-preview-image" style="display:none;" alt="プレビュー">
           </div>
@@ -97,7 +97,7 @@
             <%= f.file_field :file, accept: "image/*", required: true, id: "file_input_field" %>
           </div>
           
-          <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn" %>
+          <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn", id: "submitBtn", disabled: true %>
         <% end %>
       </div>
     </div>
@@ -1042,10 +1042,46 @@
 .upload-submit-btn {
   width: 100%;
 }
+
+/* 投稿ボタンが無効（disabled）のときのスタイル */
+.btn:disabled, 
+#submitBtn:disabled {
+  background-color: #cccccc !important; /* グレーに変更 */
+  color: #888888 !important;            /* 文字色を薄く */
+  border-color: #bbbbbb !important;     /* 枠線もグレーに */
+  cursor: not-allowed;                  /* カーソルを禁止マークに */
+  opacity: 0.6;                         /* 透明度を下げて未活性感を出す */
+}
+
+/* ドラッグ＆ドロップ時のハイライト用スタイル */
+.upload-preview-area.dragover {
+  border-color: var(--clr-gold-light, #e8a820); /* 枠線をハイライト色に */
+  background: rgba(232, 168, 32, 0.1);          /* 背景を少し明るく */
+  border-style: solid;                          /* 破線から実線に変更して強調 */
+}
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+
+    // ▼▼ ここから追加：フォームをリセットする関数 ▼▼
+  function resetUploadForm() {
+    const fileInputField = document.getElementById('file_input_field');
+    const preview = document.getElementById('uploadPreviewImage');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    const submitBtn = document.getElementById('submitBtn'); // 投稿ボタン
+    const uploadPreviewArea = document.getElementById('uploadPreviewArea');
+
+    if (fileInputField) fileInputField.value = '';
+    if (preview) {
+      preview.src = '';
+      preview.style.display = 'none';
+    }
+    if (placeholder) placeholder.style.display = 'block';
+    if (submitBtn) submitBtn.disabled = true; // ボタンを再度グレーアウト
+    if (uploadPreviewArea) uploadPreviewArea.classList.remove('dragover');
+  }
+  // ▲▲ ここまで追加 ▲▲
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadModal = document.getElementById('uploadModal');
     const closeModal = document.getElementById('closeModal');
@@ -1155,6 +1191,7 @@ if (closeCannotDeleteBtn) {
       closeModal.addEventListener('click', () => {
         uploadModal.classList.remove('active');
         document.body.style.overflow = '';
+        resetUploadForm(); // ★この1行を追加
       });
     }
 
@@ -1163,6 +1200,7 @@ if (closeCannotDeleteBtn) {
         if (e.target === uploadModal) {
           uploadModal.classList.remove('active');
           document.body.style.overflow = '';
+          resetUploadForm(); // ★この1行を追加
         }
       });
     }
@@ -1220,10 +1258,24 @@ window.addEventListener('click', (e) => {
 });
 
 const fileInputField = document.getElementById('file_input_field');
-if (fileInputField) {
-  fileInputField.addEventListener('change', (e) => {
-    const file = e.target.files[0];
+const uploadPreviewArea = document.getElementById('uploadPreviewArea');
+const submitBtn = document.getElementById('submitBtn');
+
+// ★新しく追加：モーダルの要素、または閉じるボタンを取得
+// （お使いのHTMLに合わせてIDやクラス名を調整してください）
+const uploadModal = document.getElementById('uploadModal'); // モーダル本体
+const closeModalBtn = document.getElementById('closeModalBtn'); // 閉じるボタン（ある場合）
+
+if (fileInputField && uploadPreviewArea) {
+  
+  // プレビュー表示処理
+  const handlePreview = (file) => {
     if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('画像ファイルを選択してください。');
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -1232,10 +1284,108 @@ if (fileInputField) {
       preview.src = event.target.result;
       preview.style.display = 'block';
       placeholder.style.display = 'none';
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
     };
     reader.readAsDataURL(file);
+  };
+
+  // ★新しく追加：フォームとプレビューを完全に初期化する関数
+  const resetUploadForm = () => {
+    // 1. ファイル入力を空にする（これで選択が解除されます）
+    fileInputField.value = '';
+    
+    // 2. プレビュー画像を非表示にしてsrcをクリア
+    const preview = document.getElementById('uploadPreviewImage');
+    if (preview) {
+      preview.src = '';
+      preview.style.display = 'none';
+    }
+
+    // 3. 初期状態のプレースホルダー（文字やアイコン）を再表示
+    const placeholder = document.getElementById('uploadPlaceholder');
+    if (placeholder) {
+      placeholder.style.display = 'block';
+    }
+
+    // 4. 投稿ボタンを再びグレーアウト（無効化）
+    if (submitBtn) {
+      submitBtn.disabled = true;
+    }
+
+    // 5. ドラッグ＆ドロップのハイライトが残っていれば解除
+    uploadPreviewArea.classList.remove('dragover');
+  };
+
+  // ① 既存のファイル選択時の処理
+  fileInputField.addEventListener('change', (e) => {
+    handlePreview(e.target.files[0]);
   });
+
+  // ② ドラッグオーバー
+  uploadPreviewArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadPreviewArea.classList.add('dragover');
+  });
+
+  // ③ ドラッグリーブ
+  uploadPreviewArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    uploadPreviewArea.classList.remove('dragover');
+  });
+
+  // ④ ドロップ
+  uploadPreviewArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadPreviewArea.classList.remove('dragover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInputField.files = files;
+      handlePreview(files[0]);
+    }
+  });
+
+  // -------------------------------------------------------------
+  // ★新しく追加：モーダルが閉じられたときにリセット関数を呼び出す
+  // -------------------------------------------------------------
+  
+  // パターンA：Bootstrapを使用している場合（推奨：背景クリックで閉じても作動します）
+  if (uploadModal) {
+    // Bootstrapのモーダルが完全に隠れたときに発生するイベント
+    uploadModal.addEventListener('hidden.bs.modal', () => {
+      resetUploadForm();
+    });
+  }
+
+  // パターンB：自作の閉じるボタン（×ボタンなど）で制御している場合
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      resetUploadForm();
+    });
+  }
 }
+
+// -------------------------------------------------------------
+  // ★新しく追加：モーダルが閉じられたときにリセット関数を呼び出す
+  // -------------------------------------------------------------
+  
+  // パターンA：Bootstrapを使用している場合（推奨：背景クリックで閉じても作動します）
+  if (uploadModal) {
+    // Bootstrapのモーダルが完全に隠れたときに発生するイベント
+    uploadModal.addEventListener('hidden.bs.modal', () => {
+      resetUploadForm();
+    });
+  }
+
+  // パターンB：自作の閉じるボタン（×ボタンなど）で制御している場合
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+      resetUploadForm();
+    });
+  }
 
 // カレンダー
 const uploadDates = <%= @upload_dates.map(&:to_s).to_json.html_safe %>;
