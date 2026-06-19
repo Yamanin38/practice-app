@@ -10,9 +10,19 @@
     <header style="margin-bottom: 30px; border-bottom: 1px solid var(--clr-border); padding-bottom: 20px;">
       
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-        <span class="user-role member">
+        
+        <%# 権限によってラベルとクラス（色）を切り替える %>
+        <% if @article.user.admin? %>
+          <span class="user-role admin">管理者</span>
+        <% else %>
+          <span class="user-role member">メンバー</span>
+        <% end %>
+        
+        <%# ユーザー名はバッジの横に並べて表示 %>
+        <span style="font-weight: bold; color: var(--clr-text, #333);">
           <%= @article.user.username %>
         </span>
+
         <span style="color: var(--clr-text-muted); font-size: 14px; font-family: monospace;">
           <%= @article.created_at.strftime('%Y/%m/%d %H:%M') %>
         </span>
