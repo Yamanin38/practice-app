@@ -644,8 +644,8 @@ a.feature-card {
 }
 
 .user-role.member {
-  background: linear-gradient(135deg, #3a2108, #1e0d00);
-  border-color: var(--clr-border-lite);
+  background: linear-gradient(135deg, #146579, #003a41);
+  border-color: #004a4f;
   color: var(--clr-gold-light);
 }
 
