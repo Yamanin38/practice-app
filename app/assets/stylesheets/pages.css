@@ -645,7 +645,7 @@ a.feature-card {
 
 .user-role.member {
   background: linear-gradient(135deg, #146579, #003a41);
-  border-color: #004a4f;
+  border-color: #00959f;
   color: var(--clr-gold-light);
 }
 
@@ -1710,6 +1710,25 @@ a.feature-card {
     align-items: center;
     gap: 12px; /* ★ ユーザー名、権限バッジ、ログアウトボタン同士の間にも少し余白を作ってスッキリさせます */
   }
+
+  .navbar {
+    position: fixed !important; /* これでスマホ時に追従します */
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 60px !important;
+    z-index: 1600 !important; /* 他の要素より手前に表示 */
+  }
+  .main-content {
+    margin-top: 60px !important; /* ナビバーの高さ分だけ下げる */
+  }
+  .container {
+        padding: 40px 14px !important; /* 上部の余白を広げて、ナビバーと内容が被らないようにする */
+    }
+    .portal-container {
+    padding: 30px 16px !important; /* 同様に、ポータルの内容もナビバーと被らないように上部の余白を広げる */
+}
 }
 
 /* ============================================================
