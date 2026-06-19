@@ -2,6 +2,7 @@ class User < ApplicationRecord
   has_secure_password
   has_many :images, dependent: :destroy
   has_many :articles, dependent: :destroy
+  has_secure_token :session_token # セッション管理のためのトークンを生成するメソッドを追加
 
   enum :role, { member: 0, admin: 1 }
 

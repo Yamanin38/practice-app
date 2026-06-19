@@ -6,7 +6,9 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(username: params[:username])
     if user&.authenticate(params[:password])
-      session[:user_id] = user.id
+      # 【最重要】ここが必ず必要です！
+    session[:user_id] = user.id
+    session[:session_token] = user.session_token
       redirect_to root_path
     else
       flash.now[:alert] = "ユーザー名またはパスワードが正しくありません"
