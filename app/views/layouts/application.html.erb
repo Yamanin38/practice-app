@@ -63,7 +63,7 @@
 /* 2. ログインボタンのブロックを画面右端に固定 */
 #navAuth {
     position: absolute;
-    right: 24px;       /* 画面右端からの好みの余白 */
+    right: 50px;       /* 画面右端からの好みの余白 */
     top: 50%;          /* 上下中央に配置 */
     transform: translateY(-50%); /* 上下中央のズレを補正 */
 }
@@ -72,6 +72,32 @@
     #navAuth {
         right: 50px; /* ハンバーガーメニューと被らないように位置を左へずらす */
     }
+}
+/* ============================================================
+   PC表示向け（1025px以上）：メニューを完全中央寄せにする設定
+   ============================================================ */
+@media (min-width: 1025px) {
+  .navbar-container {
+    justify-content: space-between;
+  }
+
+  /* 2. メニューは自身のサイズを維持して中央に位置させる */
+  .nav-menu {
+    flex: 0 0 auto;
+  }
+
+  /* 3. 前々回に設定した #navAuth の絶対配置を解除し、右側に広げる */
+  #navAuth {
+    position: static;   /* 絶対配置(absolute)を解除 */
+    top: auto;
+    right: auto;
+    transform: none;    /* 上下中央の補正をリセット */
+    
+    flex: 1;            /* 左のロゴと同じ重み（幅）を持たせる */
+    display: flex;
+    justify-content: flex-end; /* ボタンやアカウント情報を右寄せにする */
+    gap: 12px;          /* 要素同士の隙間 */
+  }
 }
     </style>
 

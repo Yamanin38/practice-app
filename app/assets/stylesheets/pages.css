@@ -234,7 +234,7 @@ body {
 }
 
 /* ── スマホ時のレイアウト修正 ── */
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
   /* 画面幅が狭い場合（iPadの縦やスマホ）、強制横並びだと崩れるため
      ハンバーガーメニューを表示し、メニューを隠す */
   .nav-menu {
@@ -959,7 +959,7 @@ a.feature-card {
   z-index: 1;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   .about-content { padding: 20px 16px; }
 }
 
@@ -1341,7 +1341,7 @@ a.feature-card {
   gap: 16px;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
   .portal-grid {
     grid-template-columns: 1fr; /* 画面が狭くなったら縦並び */
   }
@@ -1451,7 +1451,7 @@ a.feature-card {
 /* ============================================================
    RESPONSIVE — 768px
    ============================================================ */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .navbar {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -1476,7 +1476,7 @@ a.feature-card {
 }
 
 /* レスポンシブ（スマホ対応） */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .portal-layout {
     grid-template-columns: 1fr;
   }
@@ -1545,7 +1545,7 @@ a.feature-card {
 /* ============================================================
    RESPONSIVE — 480px
    ============================================================ */
-@media (max-width: 480px) {
+@media (max-width: 1024px) {
   .navbar-container { padding: 0 12px; }
   .main-content { margin-top: 60px; }
   .navbar-logo a { font-size: 16px; }
@@ -1699,4 +1699,39 @@ a.feature-card {
 .nav-menu .nav-item.admin-menu a.active {
   color: var(--clr-gold-light); /* ★修正：ホバー時のみゴールド（黄色）にする */
   background: rgba(200,130,10,.08);
+}
+
+@media (max-width: 1024px) {
+  /* ...他の記述はそのまま... */
+
+  #navAuth {
+    right: 120px; /* ★ 80pxから数値を増やしてハンバーガーから遠ざける（110px〜140pxで微調整してください） */
+    display: flex;
+    align-items: center;
+    gap: 12px; /* ★ ユーザー名、権限バッジ、ログアウトボタン同士の間にも少し余白を作ってスッキリさせます */
+  }
+}
+
+/* ============================================================
+   超小型スマホ向け（Galaxy Z Foldなど: 480px以下）の微調整
+   ============================================================ */
+@media (max-width: 480px) {
+  #navAuth {
+    gap: 6px;           /* ログインボタンや名前などの隙間をさらに狭める */
+    margin-right: 8px;  /* ハンバーガーとの隙間を縮める */
+  }
+
+  /* ボタンや文字を少し小さくして、横一列に収める */
+  #navAuth .btn {
+    padding: 4px 10px;
+    font-size: 10px;
+  }
+  
+  .user-info {
+    font-size: 10px;
+  }
+
+  .navbar-logo a {
+    font-size: 14px;    /* ロゴの文字も少し小さくしてスペースを確保 */
+  }
 }
