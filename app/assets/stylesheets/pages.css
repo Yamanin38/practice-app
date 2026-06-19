@@ -69,23 +69,40 @@ body {
   /* ① 背景画像を3層に重ねる（上に書いたものほど手前に表示されます） */
   background-image:
     linear-gradient(rgba(25, 12, 0, 0.45), rgba(25, 12, 0, 0.45)), /* 1層目: 全体の暗いフィルター */
-    url('test_pic_1.png'),                                         /* 2層目: 追加したい写真 */
-    url('cork_texture.png');                                       /* 3層目: コルクボード（最背面） */
+    url('teamimg2.png'),                                           /* 2層目: メインの写真 */
+    url('teamimg.png'),                                            /* 2層目: メインの写真 */
+    url('test_pic_1.png'),                                         /* 3層目: 追加したい写真 */
+    url('cork_texture.png');                                       /* 4層目: コルクボード（最背面） */
 
   /* ② それぞれのサイズを指定 */
   /* フィルターは自動(auto) / 写真は横幅150px / コルクボードは元の 480px 480px */
-  background-size: auto, 450px auto, 480px 480px;
+  background-size:
+        auto, 
+        400px auto,
+        700px auto, 
+        500px auto, 
+        480px 480px;
 
   /* ③ ★ここが最大のポイント！繰り返しの設定 */
   /* フィルターは連続 / 写真は【1枚だけ(no-repeat)】/ コルクボードは【連続(repeat)】 */
-  background-repeat: repeat, no-repeat, repeat;
+  background-repeat: 
+    repeat, 
+    no-repeat, /*1層目用*/
+    no-repeat, /*2層目用*/
+    no-repeat, /*3層目用*/
+    repeat; /* 4層目のコルクボードは繰り返し表示 */
 
   /* ④ 写真を表示したい位置を指定（例：画面の右下から40pxの位置） */
   /* フィルターは基準位置(0 0) / 写真の位置 / コルクボードは基準位置(0 0) */
-  background-position: 0 0, right 40px bottom 40px, 0 0;
+  background-position:
+  0 0, 
+  right 300px top 50px,
+  left 50px bottom 0px,
+  right 40px bottom 40px, 
+  0 0;
 
   /* ⑤ スクロールしても背景をその場に固定する設定 */
-  background-attachment: fixed, fixed, fixed;
+  background-attachment: fixed, fixed, fixed, fixed, fixed;
   color: var(--clr-text);
   line-height: 1.7;
   min-height: 100vh;
