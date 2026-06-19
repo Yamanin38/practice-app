@@ -13,7 +13,6 @@
   <body>
     <nav class="navbar" <% if current_user %>data-current-user='<%= { username: current_user.username, role: current_user.role }.to_json %>'<% end %>>
   <div class="navbar-container">
-    
     <div class="navbar-logo">
       <a href="/">チームサイト</a>
     </div>
@@ -43,6 +42,7 @@
       <span></span>
     </div>
     
+    
   </div>
 </nav>
 
@@ -53,6 +53,27 @@
     <footer class="footer">
       <p>&copy; 2026 Thrones Site. All rights reserved.</p>
     </footer>
+
+    <style>
+    /* 1. 親要素である navbar に基準となる設定を追加（すでにある場合は background などはそのままに、以下を追記） */
+.navbar {
+    position: relative;
+}
+
+/* 2. ログインボタンのブロックを画面右端に固定 */
+#navAuth {
+    position: absolute;
+    right: 24px;       /* 画面右端からの好みの余白 */
+    top: 50%;          /* 上下中央に配置 */
+    transform: translateY(-50%); /* 上下中央のズレを補正 */
+}
+/* 画面幅が768px以下（スマホ・タブレット等）のときの調整 */
+@media (max-width: 768px) {
+    #navAuth {
+        right: 50px; /* ハンバーガーメニューと被らないように位置を左へずらす */
+    }
+}
+    </style>
 
     <script>
       const hamburger = document.getElementById('hamburger');
