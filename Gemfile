@@ -9,7 +9,7 @@ gem "rails", "~> 7.1.6"
 gem "sprockets-rails"
 
 # Use sqlite3 as the database for Active Record
-gem "sqlite3", ">= 1.4"
+# gem "sqlite3", ">= 1.4"
 
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
@@ -51,6 +51,7 @@ gem "kaminari"
 gem "kramdown"
 gem 'lograge'
 gem 'rack-attack'
+gem 'mysql2'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

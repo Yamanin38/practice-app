@@ -9,3 +9,17 @@ services:
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+  db:
+    image: mariadb:10.11 # ラズパイ(ARM)でも動作する安定版
+    restart: always
+    environment:
+      # .env ファイルの値を読み込んでMariaDBを初期化します
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      # データベースの中身が消えないようにボリュームをマウントします
+      - mariadb_data:/var/lib/mysql
+volumes:
+  mariadb_data:
