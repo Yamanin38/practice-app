@@ -8,7 +8,7 @@ class ArticlesController < ApplicationController
   def index
   @articles = Article.includes(:user, images: { file_attachment: :blob }).order(created_at: :desc)
   @all_images = Image.includes(file_attachment: :blob).ordered_by_date
-  @article_dates = Article.pluck(:created_at).map { |d| d.to_date.to_s }.uniq
+  @article_dates = Article.pluck(:created_at).map { |d| d.in_time_zone('Tokyo').to_date.to_s }.uniq
   if params[:date].present?
     @articles = @articles.where(created_at: Date.parse(params[:date]).all_day)
   end

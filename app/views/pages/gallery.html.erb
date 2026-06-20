@@ -51,7 +51,7 @@
       image_id: image.id,
       full_url: url_for(image.file),
       file_size: image.file.blob.byte_size,
-      used_in_articles: image.article_images.includes(:article).map { |ai| ai.article.title }.to_json
+      used_in_articles: image.article_images.map { |ai| ai.article.title }.to_json
     } %>
     <% end %>
     <div class="gallery-overlay">

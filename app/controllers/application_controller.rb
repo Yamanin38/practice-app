@@ -18,4 +18,11 @@ class ApplicationController < ActionController::Base
       @current_user = nil
     end
   end
+
+  # ログにユーザー情報を付与するためのペイロード設定
+  def append_info_to_payload(payload)
+    super
+    payload[:remote_ip] = request.remote_ip
+    payload[:user_id] = current_user.id if current_user
+  end
 end

@@ -5,15 +5,20 @@ class PagesController < ApplicationController
 end
 
 def gallery
-  @images = Image.includes(file_attachment: :blob).ordered_by_date
-  @images = @images.by_date(params[:date]) if params[:date].present?
-  @images = @images.page(params[:page]).per(24)
-  @upload_dates = Image.all
-                      .map { |img| img.created_at.in_time_zone('Tokyo').to_date }
-                      .uniq
-                      .sort
-                      .reverse
-end
+    # 修正1: N+1対策
+    # 画像ファイルだけでなく、紐づく article_images と article も一緒に読み込む
+    @images = Image.includes({ article_images: :article }, file_attachment: :blob).ordered_by_date
+    @images = @images.by_date(params[:date]) if params[:date].present?
+    @images = @images.page(params[:page]).per(24)
+
+    # 修正2: メモリ枯渇対策
+    # all ではなく pluck を使い、タイムスタンプ(created_at)だけを抽出してから計算する
+    @upload_dates = Image.pluck(:created_at)
+                         .map { |time| time.in_time_zone('Tokyo').to_date }
+                         .uniq
+                         .sort
+                         .reverse
+  end
 
   def about
     @team_profile = TeamProfile.singleton

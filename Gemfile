@@ -49,7 +49,7 @@ gem "ruby-vips", "~> 2.2"
 
 gem "kaminari"
 gem "kramdown"
-
+gem 'lograge'
 gem 'rack-attack'
 
 group :development, :test do

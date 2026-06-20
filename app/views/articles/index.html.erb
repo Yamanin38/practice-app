@@ -45,7 +45,7 @@
           <div class="article-card" data-url="<%= article_path(article) %>">
             <% if article.images.any? %>
               <div class="article-thumbnails">
-                <% article.images.first(4).each do |img| %>
+                <% article.images.to_a.first(4).each do |img| %>
                   <% if img.file.attached? %>
                     <div class="article-thumb" data-full-url="<%= url_for(img.file) %>">
                         <%= image_tag img.file.variant(resize_to_fill: [800, 800]), class: "thumb-img" %>
