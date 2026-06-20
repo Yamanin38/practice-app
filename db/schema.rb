@@ -10,19 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
-  create_table "active_storage_attachments", force: :cascade do |t|
+ActiveRecord::Schema[7.1].define(version: 2026_06_17_071902) do
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
-    t.integer "record_id", null: false
-    t.integer "blob_id", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
     t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
     t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
     t.index ["record_type", "record_id"], name: "index_active_storage_attachments_on_record"
   end
 
-  create_table "active_storage_blobs", force: :cascade do |t|
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "key", null: false
     t.string "filename", null: false
     t.string "content_type"
@@ -35,16 +35,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
     t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
   end
 
-  create_table "active_storage_variant_records", force: :cascade do |t|
-    t.integer "blob_id", null: false
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
     t.index ["blob_id"], name: "index_active_storage_variant_records_on_blob_id"
   end
 
-  create_table "article_images", force: :cascade do |t|
-    t.integer "article_id", null: false
-    t.integer "image_id", null: false
+  create_table "article_images", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "article_id", null: false
+    t.bigint "image_id", null: false
     t.integer "position", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -52,8 +52,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
     t.index ["image_id"], name: "index_article_images_on_image_id"
   end
 
-  create_table "articles", force: :cascade do |t|
-    t.integer "user_id", null: false
+  create_table "articles", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
     t.string "title", null: false
     t.text "content", null: false
     t.string "tags"
@@ -62,7 +62,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
     t.index ["user_id"], name: "index_articles_on_user_id"
   end
 
-  create_table "contacts", force: :cascade do |t|
+  create_table "contacts", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "name"
     t.string "email"
     t.string "subject"
@@ -71,14 +71,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
     t.datetime "updated_at", null: false
   end
 
-  create_table "images", force: :cascade do |t|
-    t.integer "user_id", null: false
+  create_table "images", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_images_on_user_id"
   end
 
-  create_table "team_profiles", force: :cascade do |t|
+  create_table "team_profiles", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.text "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -86,14 +86,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_19_075631) do
     t.text "rules_content"
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
     t.string "username", null: false
     t.string "password_digest", null: false
     t.integer "role", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "session_token"
-    t.index ["session_token"], name: "index_users_on_session_token", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 

@@ -9,3 +9,16 @@ services:
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+
+  # MariaDBの追加
+  db:
+    image: mariadb:10.6
+    command: --innodb_buffer_pool_size=64M --max_connections=20
+    environment:
+      MYSQL_ROOT_PASSWORD: 38469
+      MYSQL_DATABASE: myapp_production
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data: # データベースのデータを保存する領域
