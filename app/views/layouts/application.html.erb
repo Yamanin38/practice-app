@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <nav class="navbar" <% if current_user %>data-current-user='<%= { username: current_user.username, role: current_user.role }.to_json %>'<% end %>>
+    <nav class="navbar" <% if @current_user_view %>data-current-user='<%= { username: @current_user_view.username, role: @current_user_view.role }.to_json %>'<% end %>>
   <div class="navbar-container">
     <div class="navbar-logo">
       <a href="/">Thrones</a>

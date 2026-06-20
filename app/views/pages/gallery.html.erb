@@ -6,7 +6,7 @@
 
   <div class="page-content">
     <div class="gallery-actions">
-      <% if current_user %>
+      <% if @user %>
         <button class="btn btn-primary" id="uploadBtn">写真を投稿</button>
       <% else %>
         <p class="login-prompt"><a href="<%= login_path %>">ログイン</a>して写真を投稿</p>
@@ -42,7 +42,7 @@
     <% if @images.any? %>
       <div class="gallery-grid" id="galleryGrid">
         <% @images.each do |image| %>
-  <div class="gallery-item" onclick="openImageModal(<%= image.id %>, '<%= current_user&.admin? %>')">
+  <div class="gallery-item" onclick="openImageModal(<%= image.id %>, '<%= @user&.admin? %>')">
     <% if image.file.present? %>
       <%= image_tag image.file.representation(resize_to_fill: [400, 400]),
     alt: "Gallery image",
@@ -77,7 +77,7 @@
   </div>
 
   <!-- 写真投稿フォーム（モーダル） -->
-  <% if current_user %>
+  <% if @current_user_view %>
     <div class="modal" id="uploadModal">
       <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
@@ -115,7 +115,7 @@
       <span class="modal-image-size" id="modalImageSize"></span>
     </div>
     <div class="image-modal-footer">
-      <% if current_user&.admin? %>
+      <% if @current_user_view&.admin? %>
         <form id="modalDeleteForm" method="POST" style="margin:0;">
           <input type="hidden" name="_method" value="delete">
           <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">

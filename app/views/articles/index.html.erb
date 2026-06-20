@@ -6,7 +6,7 @@
 
   <div class="page-content">
     <div class="articles-actions">
-      <% if current_user %>
+      <% if @user %>
         <button class="btn btn-primary" id="newArticleBtn">新しい活動記録を投稿</button>
       <% end %>
       <div class="filter-section-row">
@@ -67,10 +67,10 @@
               <p class="article-meta">
                 <%= article.user.username %> ・ <%= article.created_at.strftime("%Y年%m月%d日") %>
               </p>
-              <% if current_user %>
+              <% if @user %>
               <div class="article-actions">
                 <%= link_to "編集", article_path(article, edit: true), class: "btn btn-secondary btn-sm" %>
-                <% if current_user.admin? %>
+                <% if @user.admin? %>
                   <button type="button" class="btn btn-danger2 btn-sm"
                     onclick="openDeleteConfirmModal('<%= article_path(article) %>', event)">削除</button>
                 <% end %>

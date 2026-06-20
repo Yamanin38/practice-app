@@ -1,11 +1,11 @@
-# Configure image processing to use libvips
+# config/initializers/image_processing.rb
+
+# Vipsを利用するための設定
 Rails.application.config.image_processing_backend = :vips
 
-# Configure the image_processing gem to use vips
 ActiveStorage::Analyzer::ImageAnalyzer.prepend(Module.new do
   def metadata
-    return super unless file_path
-
+    # blobメソッドを使用してファイルをダウンロードする
     download_blob_to_tempfile do |tempfile|
       image = ::Vips::Image.new_from_file(tempfile.path)
       {
@@ -14,6 +14,7 @@ ActiveStorage::Analyzer::ImageAnalyzer.prepend(Module.new do
       }
     end
   rescue ::Vips::Error
+    # Vipsで処理できない場合は親のデフォルト処理（ImageMagick等）へフォールバック
     super
   end
 end) if defined?(::Vips)

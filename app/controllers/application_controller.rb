@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::Base
   helper_method :current_user
+  # before_action で一度だけロードしてインスタンス変数に入れる
+  before_action :set_current_user_for_views
 
   def current_user
     # セッションに user_id がなければ何もしない
@@ -24,5 +26,16 @@ class ApplicationController < ActionController::Base
     super
     payload[:remote_ip] = request.remote_ip
     payload[:user_id] = current_user.id if current_user
+  end
+
+  private
+
+  def set_current_user_for_views
+    @current_user_view = current_user
+  end
+
+  def set_user
+    # ここで一度だけ代入することで、このリクエスト中はこれを使えばOKになる
+    @user = current_user 
   end
 end

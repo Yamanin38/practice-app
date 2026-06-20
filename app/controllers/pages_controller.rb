@@ -5,6 +5,7 @@ class PagesController < ApplicationController
 end
 
 def gallery
+    @user = current_user # 一度だけ取得
     # 修正1: N+1対策
     # 画像ファイルだけでなく、紐づく article_images と article も一緒に読み込む
     @images = Image.includes({ article_images: :article }, file_attachment: :blob).ordered_by_date

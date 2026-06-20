@@ -6,6 +6,20 @@ Rails.application.configure do
   # In the development environment your application's code is reloaded any time
   # it changes. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
+
+  # Logrageを有効化
+  config.lograge.enabled = true
+
+  # ログのフォーマットをシンプルにする（必要に応じてカスタマイズ可能）
+  config.lograge.formatter = Lograge::Formatters::KeyValue.new
+
+  # ログに含めたい情報を追加（例: user_id や params）
+  config.lograge.custom_options = lambda do |event|
+    {
+      time: Time.now,
+      params: event.payload[:params].except('controller', 'action')
+    }
+  end
   config.enable_reloading = true
 
   # Do not eager load code on boot.
