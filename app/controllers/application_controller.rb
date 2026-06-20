@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   helper_method :current_user
   # before_action で一度だけロードしてインスタンス変数に入れる
   before_action :set_current_user_for_views
+  before_action :set_user   # ← この行を追加
 
   def current_user
     # セッションに user_id がなければ何もしない
