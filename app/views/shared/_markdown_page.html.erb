@@ -1,9 +1,7 @@
 <%
-  require 'kramdown'
-  if local_assigns[:content].present?
-    html = Kramdown::Document.new(local_assigns[:content]).to_html
-    # テーブルをスクロール可能なラッパーで囲む
-    rendered_content = html.gsub(/<table>/, '<div class="table-wrapper"><table>').gsub(/<\/table>/, '</table></div>')
+  if local_assigns[:rendered_html].present?
+    # テーブルをスクロール可能なラッパーで囲む（コントローラ側で変換済みのHTMLに対して適用）
+    rendered_content = local_assigns[:rendered_html].gsub(/<table>/, '<div class="table-wrapper"><table>').gsub(/<\/table>/, '</table></div>')
   else
     rendered_content = nil
   end

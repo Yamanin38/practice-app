@@ -15,8 +15,9 @@ class ArticlesController < ApplicationController
 end
 
 def show
-  markdown_text = @article.content || ""
-  @html_content = Kramdown::Document.new(markdown_text).to_html
+  # 保存時（before_save）にKramdown変換済みのhtml_contentを使う。
+  # 旧データでhtml_contentが未生成の場合のみフォールバックで変換する。
+  @html_content = @article.html_content.presence || Kramdown::Document.new(@article.content.to_s).to_html
   @all_images = Image.includes(file_attachment: :blob).ordered_by_date
 end
 

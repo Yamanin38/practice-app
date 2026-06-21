@@ -5,4 +5,12 @@ class Article < ApplicationRecord
 
   validates :title, presence: true
   validates :content, presence: true
+
+  before_save :render_html_content, if: :content_changed?
+
+  private
+
+  def render_html_content
+    self.html_content = Kramdown::Document.new(content.to_s).to_html
+  end
 end

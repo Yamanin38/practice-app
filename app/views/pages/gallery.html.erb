@@ -1124,7 +1124,13 @@
 
       // 1. ボタンを「処理中」にして操作をロック
       submitBtn.disabled = true;
-      submitBtn.value = 'アップロード・処理中... ⌛';
+      submitBtn.value = '投稿中...';
+
+       // ×ボタンを無効化（spanなのでpointer-eventsで制御）
+      if (closeModal) {
+        closeModal.style.pointerEvents = 'none';
+        closeModal.style.opacity = '0.4';
+      }
       
       // （お好みで）モーダル全体を半透明にするなどして、他の操作を防ぐ
       uploadForm.style.opacity = '0.7';
@@ -1166,6 +1172,13 @@
   if (submitBtn) {
     submitBtn.value = '投稿する';
     submitBtn.disabled = false; // 明示的にボタンの無効化を解除！
+  }
+
+  // ×ボタンを再度有効化
+  const closeModalBtn = document.getElementById('closeModal');
+  if (closeModalBtn) {
+    closeModalBtn.style.pointerEvents = 'auto';
+    closeModalBtn.style.opacity = '1';
   }
 
   const uploadForm = document.querySelector('.upload-form');
@@ -1294,9 +1307,9 @@ if (closeCannotDeleteBtn) {
     // 💡 修正後：写真投稿モーダルの開閉処理
     if (uploadBtn && uploadModal) {
       uploadBtn.addEventListener('click', () => {
-        resetUploadForm(); // ★【追記】モーダルを開く瞬間に、前回のゴミを完全に掃除する！
+        resetUploadForm();
         uploadModal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // 背景のスクロール防止（活動記録モーダルと同じ処理）
+        document.body.style.overflow = 'hidden';
       });
     }
 
@@ -1304,17 +1317,7 @@ if (closeCannotDeleteBtn) {
       closeModal.addEventListener('click', () => {
         uploadModal.classList.remove('active');
         document.body.style.overflow = '';
-        resetUploadForm(); // ★この1行を追加
-      });
-    }
-
-    if (uploadModal) {
-      window.addEventListener('click', (e) => {
-        if (e.target === uploadModal) {
-          uploadModal.classList.remove('active');
-          document.body.style.overflow = '';
-          resetUploadForm(); // ★この1行を追加
-        }
+        resetUploadForm();
       });
     }
 
