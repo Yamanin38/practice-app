@@ -16,6 +16,9 @@ class ImageUploadJob < ApplicationJob
     )
 
     image.save!
+     # 🌟 ここを追記：ジョブの中で事前にサムネイル画像（Variant）を生成しておく
+    image.file.variant(resize_to_fill: [800, 800]).processed
+    image.file.variant(resize_to_fill: [400, 400]).processed
   ensure
     File.delete(tempfile_path) if File.exist?(tempfile_path)
     
