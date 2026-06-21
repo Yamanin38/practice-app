@@ -9,7 +9,21 @@
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-  </head>
+    <script>
+      // 画面が描画される前に訪問済みか判定し、htmlタグにクラスを付ける（最速のFOUC対策）
+      if (sessionStorage.getItem('site_visited') === '1') {
+        document.documentElement.classList.add('site-visited');
+      }
+    </script>
+    <style>
+      /* 訪問済みの場合は、どんな状況でもドアを強制的に非表示にする */
+      html.site-visited .door-overlay {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        animation: none !important;
+      }
+    </style>
 
   <body>
     <!-- ===== ドア開放アニメーション オーバーレイ ===== -->
@@ -411,6 +425,7 @@
         if (isInternalNav || isFromSameSite) {
           overlay.classList.add('gone');
           sessionStorage.setItem('site_visited', '1');
+          document.documentElement.classList.add('site-visited');
           return;
         }
         sessionStorage.setItem('site_visited', '1');
@@ -426,6 +441,7 @@
 
       setTimeout(function() {
         overlay.classList.add('gone');
+        document.documentElement.classList.add('site-visited');
       }, 3500);
     })();
     </script>
