@@ -23,6 +23,10 @@ def gallery
 
   def about
     @team_profile = TeamProfile.singleton
+    # 保存時（before_save）に変換済みのhtml_contentを使う。
+    # 旧データで未生成の場合のみフォールバックで変換する。
+    @rendered_html = @team_profile.html_content.presence ||
+                      (@team_profile.content.present? ? Kramdown::Document.new(@team_profile.content).to_html : nil)
   end
 
   def update_about
@@ -41,6 +45,8 @@ def gallery
 
   def recruitment
     @team_profile = TeamProfile.singleton
+    @rendered_html = @team_profile.html_recruitment_content.presence ||
+                      (@team_profile.recruitment_content.present? ? Kramdown::Document.new(@team_profile.recruitment_content).to_html : nil)
   end
 
   def update_recruitment
@@ -59,6 +65,8 @@ def gallery
 
   def rules
     @team_profile = TeamProfile.singleton
+    @rendered_html = @team_profile.html_rules_content.presence ||
+                      (@team_profile.rules_content.present? ? Kramdown::Document.new(@team_profile.rules_content).to_html : nil)
   end
 
   def update_rules
