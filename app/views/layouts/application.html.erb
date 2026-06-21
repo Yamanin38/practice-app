@@ -12,6 +12,20 @@
   </head>
 
   <body>
+    <!-- ===== ドア開放アニメーション オーバーレイ ===== -->
+    <div id="doorOverlay" class="door-overlay" aria-hidden="true">
+      <div class="door-scene">
+        <div class="door-frame">
+          <%= image_tag 'door.png', alt: 'door-left',  class: 'door-img door-img--left'  %>
+          <%= image_tag 'door.png', alt: 'door-right', class: 'door-img door-img--right' %>
+        </div>
+        <div class="door-light"></div>
+        <div class="door-welcome">
+          <span class="door-welcome-text">ようこそ、スローンズへ！</span>
+        </div>
+      </div>
+    </div>
+    <!-- ===== /ドア開放アニメーション ===== -->
     <nav class="navbar" <% if @current_user_view %>data-current-user='<%= { username: @current_user_view.username, role: @current_user_view.role }.to_json %>'<% end %>>
   <div class="navbar-container">
     <div class="navbar-logo">
@@ -56,6 +70,175 @@
     </footer>
 
     <style>
+    /* ============================================================
+       ドア開放アニメーション
+       ============================================================ */
+
+    /* オーバーレイ全画面 */
+    .door-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1a0c00;
+      pointer-events: all;
+      opacity: 1;
+      overflow: hidden;  /* 内容が画面外に漏れないよう */
+      transition: opacity 0.6s ease;
+    }
+    .door-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .door-overlay.gone {
+      display: none;
+    }
+
+    /* ドアのシーン全体 */
+    .door-scene {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: row;      /* パネルを横並び */
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #3a1a00 0%, #1a0800 60%, #0a0400 100%);
+    }
+
+    /* 石畳の床（下部） */
+    .door-scene::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 35%;
+      background:
+        repeating-linear-gradient(90deg,  rgba(80,50,20,0.3) 0px, rgba(80,50,20,0.3) 1px, transparent 1px, transparent 60px),
+        repeating-linear-gradient(0deg,   rgba(80,50,20,0.3) 0px, rgba(80,50,20,0.3) 1px, transparent 1px, transparent 40px),
+        linear-gradient(to top, #0a0400, transparent);
+      pointer-events: none;
+    }
+
+    /* ドア枠 */
+    .door-frame {
+      position: relative;
+      width: min(320px, 70vw);
+      height: min(440px, 60dvh, 60vh);
+      display: flex;
+      flex-shrink: 0;
+    }
+
+    /* ドア画像：door-frame全体を埋め、clip-pathで左右半分のみ表示。
+       width:100% にすることで transform-origin がフレームの端に正確に一致する */
+    .door-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center top;
+    }
+    /* 左半分のみ表示、左端をヒンジに回転 */
+    .door-img--left {
+      clip-path: inset(0 50% 0 0);
+      transform-origin: left center;
+    }
+    /* 右半分のみ表示、右端をヒンジに回転 */
+    .door-img--right {
+      clip-path: inset(0 0 0 50%);
+      transform-origin: right center;
+    }
+
+    /* ============================================================
+       アニメーション定義
+       すべて「animating」クラス一発で animation-delay を使い制御。
+       クラスを途中で付け外しすると resetがかかり二重再生になるため。
+       ============================================================ */
+    @keyframes doorShake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-7px); }
+      40%      { transform: translateX(5px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(3px); }
+    }
+    @keyframes openLeft {
+      0%   { transform: perspective(700px) rotateY(0deg); }
+      100% { transform: perspective(700px) rotateY(-80deg); }
+    }
+    @keyframes openRight {
+      0%   { transform: perspective(700px) rotateY(0deg); }
+      100% { transform: perspective(700px) rotateY(80deg); }
+    }
+    @keyframes lightGlow {
+      0%   { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes welcomeFadeIn {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.85); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1); }
+    }
+    @keyframes welcomePulse {
+      0%,100% { text-shadow: 0 0 16px #ffcc00, 0 0 36px rgba(255,180,0,0.5); }
+      50%      { text-shadow: 0 0 32px #ffdd44, 0 0 72px rgba(255,200,0,0.8); }
+    }
+
+    /* animating クラスが付いたら全シーケンスを delay で順番に実行 */
+    .door-overlay.animating .door-frame {
+      animation: doorShake 0.45s ease-in-out 0.2s both;
+    }
+    .door-overlay.animating .door-img--left {
+      animation: openLeft 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.85s both;
+    }
+    .door-overlay.animating .door-img--right {
+      animation: openRight 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.85s both;
+    }
+    .door-overlay.animating .door-light {
+      animation: lightGlow 0.8s ease 1.2s both;
+    }
+    .door-overlay.animating .door-welcome {
+      animation:
+        welcomeFadeIn 0.55s ease 1.5s both,
+        welcomePulse  2s ease-in-out 2.05s infinite;
+    }
+
+    /* 中央から漏れる光 */
+    .door-light {
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 100%;
+      opacity: 0;
+      background: radial-gradient(ellipse at center, rgba(255,200,80,0.35) 0%, transparent 70%);
+      box-shadow: 0 0 120px 80px rgba(255,170,30,0.2);
+      pointer-events: none;
+    }
+
+    /* ようこそメッセージ */
+    .door-welcome {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .door-welcome-text {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: clamp(0.9rem, 2.8vw, 1.5rem);
+      font-weight: 700;
+      color: #ffe080;
+      letter-spacing: 0.12em;
+      text-shadow: 0 0 16px #ffcc00, 0 0 36px rgba(255,180,0,0.5);
+    }
+
+    /* 元の style タグ */
+
     /* 1. 親要素である navbar に基準となる設定を追加（すでにある場合は background などはそのままに、以下を追記） */
 .navbar {
     position: relative;
@@ -195,6 +378,56 @@
           hamburger.classList.remove('active');
         });
       });
+    </script>
+
+    <script>
+    // ============================================================
+    // ドア開放アニメーション
+    // 【デバッグモード】判定を無効化し、常にアニメーションを再生する。
+    // 本番に戻す際は DEBUG_MODE を false に変えるか、
+    // 下の本番用ブロックのコメントを外す。
+    // ============================================================
+    (function() {
+      var overlay = document.getElementById('doorOverlay');
+      if (!overlay) return;
+
+      // ▼▼▼ デバッグ用：常に再生（判定をすべてスキップ）▼▼▼
+      var DEBUG_MODE = false;
+      // ▲▲▲ デバッグ用 ▲▲▲
+
+      if (!DEBUG_MODE) {
+        // --- 本番用ロジック（DEBUG_MODE = false のとき有効）---
+        var currentHost = window.location.hostname;
+        var referrerHost = '';
+        try {
+          if (document.referrer) {
+            referrerHost = new URL(document.referrer).hostname;
+          }
+        } catch(e) {}
+
+        var isInternalNav = sessionStorage.getItem('site_visited') === '1';
+        var isFromSameSite = referrerHost === currentHost;
+
+        if (isInternalNav || isFromSameSite) {
+          overlay.classList.add('gone');
+          sessionStorage.setItem('site_visited', '1');
+          return;
+        }
+        sessionStorage.setItem('site_visited', '1');
+        // --- /本番用ロジック ---
+      }
+
+      // animating クラスを付けるだけ。タイミングは CSS の animation-delay に任せる。
+      overlay.classList.add('animating');
+
+      setTimeout(function() {
+        overlay.classList.add('hidden');
+      }, 2900);
+
+      setTimeout(function() {
+        overlay.classList.add('gone');
+      }, 3500);
+    })();
     </script>
   </body>
 </html>
