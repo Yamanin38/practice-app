@@ -2,7 +2,8 @@
 class ImageUploadJob < ApplicationJob
   queue_as :default
 
-  def perform(user_id, tempfile_path, original_filename)
+  # ジョブの追跡ID（job_id）を受け取れるようにします
+  def perform(user_id, tempfile_path, original_filename, job_tracking_id)
     user = User.find(user_id)
     image = user.images.build
 
@@ -17,6 +18,10 @@ class ImageUploadJob < ApplicationJob
     image.save!
   ensure
     File.delete(tempfile_path) if File.exist?(tempfile_path)
+    
+    # 【追加】処理が完了（または失敗）したら、キャッシュに完了フラグを書き込む
+    # 有効期限を短く（例：5分）設定しておきます
+    Rails.cache.write("upload_job_#{job_tracking_id}", "completed", expires_in: 5.minutes)
   end
 
   private

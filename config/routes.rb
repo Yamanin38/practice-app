@@ -6,6 +6,11 @@ Rails.application.routes.draw do
   delete "logout", to: "sessions#destroy"
 
   resources :images, only: [:create, :index, :destroy]
+  resources :images, only: [:create, :destroy] do
+  collection do
+    post :status # または get :status でも可
+  end
+end
 
   get "gallery", to: "pages#gallery"
   get "articles", to: "articles#index"

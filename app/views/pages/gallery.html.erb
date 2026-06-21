@@ -1115,29 +1115,84 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
 
+    const uploadForm = document.querySelector('.upload-form');
+  const submitBtn = document.getElementById('submitBtn');
+  
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault(); // 通常の画面遷移（フォーム送信）をストップ！
+
+      // 1. ボタンを「処理中」にして操作をロック
+      submitBtn.disabled = true;
+      submitBtn.value = 'アップロード・処理中... ⌛';
+      
+      // （お好みで）モーダル全体を半透明にするなどして、他の操作を防ぐ
+      uploadForm.style.opacity = '0.7';
+      uploadForm.style.pointerEvents = 'none';
+
+      // 2. フォームデータを取得して非同期送信
+      const formData = new FormData(uploadForm);
+      
+      try {
+        const createRes = await fetch(uploadForm.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!createRes.ok) throw new Error('アップロードリクエストに失敗しました');
+
+        const data = await createRes.json();
+        const trackingIds = data.tracking_ids;
+
+        // 3. ポーリング開始（定期的に確認）
+        pollUploadStatus(trackingIds);
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('エラーが発生しました。もう一度お試しください。');
+        resetUploadForm(); // 失敗したらフォームを元に戻す
+      }
+    });
+  }
+
     // ▼▼ ここから追加：フォームをリセットする関数 ▼▼
   function resetUploadForm() {
-    const fileInputField = document.getElementById('file_input_field');
-    const preview = document.getElementById('uploadPreviewImage');
-    const placeholder = document.getElementById('uploadPlaceholder');
-    const submitBtn = document.getElementById('submitBtn'); // 投稿ボタン
-    const uploadPreviewArea = document.getElementById('uploadPreviewArea');
-
-    if (fileInputField) fileInputField.value = '';
-    if (preview) {
-      preview.src = '';
-      preview.style.display = 'none';
-    }
-    if (placeholder) placeholder.style.display = 'block';
-    if (submitBtn) submitBtn.disabled = true; // ボタンを再度グレーアウト
-
-    // ★新しく追加：リセット時はクラスを削除
-    if (uploadPreviewArea) {
-      uploadPreviewArea.classList.remove('dragover');
-      uploadPreviewArea.classList.remove('has-image'); 
-    }
-    if (uploadPreviewArea) uploadPreviewArea.classList.remove('dragover');
+  // 👇【最優先】まずボタンとフォームのロックを完全に解除する（エラーで途切れないように一番上に配置）
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.value = '投稿する';
+    submitBtn.disabled = false; // 明示的にボタンの無効化を解除！
   }
+
+  const uploadForm = document.querySelector('.upload-form');
+  if (uploadForm) {
+    uploadForm.style.opacity = '1';            // 半透明を解除
+    uploadForm.style.pointerEvents = 'auto';   // クリック不可を解除
+  }
+
+  // ------------------------------------------
+  // ここから下のデータクリア処理は、既存の挙動に合わせて実行
+  selectedFiles = [];
+  
+  const fileInputField = document.getElementById('file_input_field');
+  if (fileInputField) fileInputField.value = '';
+  
+  const uploadPreviewArea = document.getElementById('uploadPreviewArea');
+  if (uploadPreviewArea) uploadPreviewArea.classList.remove('dragover', 'has-image');
+  
+  // 既存のプレビュー関数は、念のためエラーが起きても安全なように try-catch で囲む
+  try {
+    if (typeof renderPreview === 'function') {
+      renderPreview(); // ※ここで画像が0枚になり、既存のロジックで適切にボタンが制御されます
+    }
+  } catch (error) {
+    console.error('プレビューの初期化中にエラーが発生しました:', error);
+  }
+}
   // ▲▲ ここまで追加 ▲▲
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadModal = document.getElementById('uploadModal');
@@ -1239,6 +1294,7 @@ if (closeCannotDeleteBtn) {
     // 💡 修正後：写真投稿モーダルの開閉処理
     if (uploadBtn && uploadModal) {
       uploadBtn.addEventListener('click', () => {
+        resetUploadForm(); // ★【追記】モーダルを開く瞬間に、前回のゴミを完全に掃除する！
         uploadModal.classList.add('active');
         document.body.style.overflow = 'hidden'; // 背景のスクロール防止（活動記録モーダルと同じ処理）
       });
@@ -1604,5 +1660,63 @@ function fetchImages(date) {
       document.getElementById('calToggleText').textContent = date || '日付で絞り込む';
     })
     .catch(err => console.error('fetchImages error:', err));
+}
+
+// ポーリングを実行する関数
+async function pollUploadStatus(trackingIds) {
+  const maxAttempts = 30;
+  let attempts = 0;
+
+  const intervalId = setInterval(async () => {
+    attempts++;
+
+    try {
+      const statusRes = await fetch('/images/status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ tracking_ids: trackingIds })
+      });
+
+      const statusData = await statusRes.json();
+
+      if (statusData.status === 'completed') {
+        // 全て完了したらループを止める
+        clearInterval(intervalId);
+        
+        // ギャラリーを裏側で更新
+        fetchImages(document.getElementById('calSelectedDate').value);
+        
+        // モーダルを閉じる
+        document.getElementById('uploadModal').classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // フォームの状態を完全リセット（さっき修正した関数が呼ばれます）
+        resetUploadForm(); 
+        
+        // alert("画像のアップロードが完了しました！"); ← ★削除（何も言わずに閉じる）
+      }
+
+      if (attempts >= maxAttempts) {
+        clearInterval(intervalId);
+        // タイムアウト時もユーザー体験を損ねないよう、コンソールにだけ残してそっと閉じる
+        console.warn('ポーリングがタイムアウトしました。バックグラウンドで処理を継続します。');
+        document.getElementById('uploadModal').classList.remove('active');
+        document.body.style.overflow = '';
+        resetUploadForm();
+      }
+
+    } catch (error) {
+      console.error('Polling error:', error);
+      clearInterval(intervalId);
+      document.getElementById('uploadModal').classList.remove('active');
+      document.body.style.overflow = '';
+      resetUploadForm();
+    }
+
+  }, 2000); // 2秒ごとに確認
 }
 </script>
