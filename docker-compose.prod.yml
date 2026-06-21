@@ -1,0 +1,41 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod # 本番用のファイルを指定
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0' -e production"
+    restart: always
+    volumes:
+      - /home/pi/practice-app/storage:/app/storage
+    ports:
+      - "3000:3000"
+    environment:
+      # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
+      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+      - RAILS_ENV=production
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_LOG_LEVEL=debug
+      - RAILS_SERVE_STATIC_FILES=true # これを有効にする
+      - WEB_CONCURRENCY=0      # 👈 プロセス数を「シングル（0）」にしてメモリを劇的に節約
+#     - RAILS_MAX_THREADS=5    # 👈 同時処理スレッド数を5程度に制限（ラズパイにはこれで十分）
+    env_file:
+      - .env
+    logging:                  # 👈 ここから追記
+      driver: "json-file"
+      options:
+        max-size: "10m"       # 1ファイル最大10MB
+        max-file: "3"         # 過去3ファイルまで保持（古いものは自動削除）
+  db:
+    image: yobasystems/alpine-mariadb
+    restart: always
+    environment:
+      # .env ファイルの値を読み込んでMariaDBを初期化します
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      # データベースの中身が消えないようにボリュームをマウントします
+      - mariadb_data:/var/lib/mysql
+volumes:
+  mariadb_data:

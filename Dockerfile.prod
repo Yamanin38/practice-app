@@ -1,0 +1,29 @@
+FROM ruby:3.3
+
+# 開発に必要なパッケージをインストール
+RUN apt-get update -qq && apt-get install -y nodejs sqlite3 libsqlite3-dev libvips libvips-dev
+
+WORKDIR /app
+
+# 先に空のファイルをコンテナ内に作って、frozenエラーを物理的に回避する
+RUN touch Gemfile Gemfile.lock
+
+COPY Gemfile /app/Gemfile
+COPY Gemfile.lock /app/Gemfile.lock
+
+# 🚨 ここでFrozenモードを明示的に「無効(false)」に固定します
+RUN bundle config set frozen false
+RUN bundle install
+
+
+COPY . /app
+
+COPY entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+EXPOSE 3000
+
+# Dockerfileの末尾（CMDの前など）に追加
+RUN SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
+
+CMD ["rails", "server", "-b", "0.0.0.0"]

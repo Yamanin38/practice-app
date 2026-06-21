@@ -2,17 +2,7 @@ require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-  # ログをlogrageで出力する設定
-  config.lograge.enabled = true
 
-  # ログのフォーマットを少し詳細にするためのカスタマイズ例
-  config.lograge.custom_options = lambda do |event|
-    {
-      time: event.time,
-      remote_ip: event.payload[:remote_ip],
-      user_id: event.payload[:user_id] # ログインユーザーのIDもログに出す（後述の準備が必要）
-    }
-  end
   # Code is not reloaded between requests.
   config.enable_reloading = false
 
@@ -70,15 +60,12 @@ Rails.application.configure do
   config.force_ssl = true
 
   # Log to STDOUT by default
-  # ログをファイルに出力し、ローテーションを有効にする
-  # 1ファイル10MBに達したら分割し、過去5世代分（最大50MB）を保持する
-  file_logger = ActiveSupport::Logger.new(config.paths["log"].first, 5, 10 * 1024 * 1024)
-  file_logger.formatter = ::Logger::Formatter.new
-  config.logger = ActiveSupport::TaggedLogging.new(file_logger)
+  config.logger = ActiveSupport::Logger.new(STDOUT)
+    .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
+    .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
 
   # Prepend all log lines with the following tags.
-  # config/environments/production.rb
-  config.log_tags = [ :request_id, :remote_ip ]
+  config.log_tags = [ :request_id ]
 
   # "info" includes generic and useful information about system operation, but avoids logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII). If you
