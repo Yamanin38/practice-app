@@ -12,5 +12,6 @@ module App
     config.time_zone = "Tokyo"          # ← 追加
     config.active_record.default_timezone = :local  # ← 追加
     config.autoload_lib(ignore: %w(assets tasks))
+    config.active_job.queue_adapter = :solid_queue
   end
 end

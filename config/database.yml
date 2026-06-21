@@ -1,19 +1,34 @@
 default: &default
   adapter: mysql2
   encoding: utf8mb4
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  pool: 6
   host: <%= ENV.fetch("DATABASE_HOST", "db") %>
   username: <%= ENV["DATABASE_USER"] %>
   password: <%= ENV["DATABASE_PASSWORD"] %>
 
 development:
-  <<: *default
-  database: <%= ENV["DATABASE_NAME"] %>
+  primary:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>
+  queue:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>
+    migrations_paths: db/queue_migrate
 
 test:
-  <<: *default
-  database: <%= ENV["DATABASE_NAME"] %>_test
+  primary:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>_test
+  queue:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>_test
+    migrations_paths: db/queue_migrate
 
 production:
-  <<: *default
-  database: <%= ENV["DATABASE_NAME"] %>
+  primary:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>
+  queue:
+    <<: *default
+    database: <%= ENV["DATABASE_NAME"] %>
+    migrations_paths: db/queue_migrate
