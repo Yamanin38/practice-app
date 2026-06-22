@@ -1,0 +1,48 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches:
+      - product2  # product2 ブランチにマージ（Push）されたら実行
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # クラウド（GitHub側）のサーバーで実行
+
+    steps:
+      # 1. 最新コードのチェックアウト
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. GitHub Actions側に cloudflared をインストール
+      - name: Install cloudflared
+        run: |
+          curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
+
+      # 3. SSHとCloudflare認証の設定、そしてrsync
+      - name: Deploy via rsync over Cloudflare Tunnel
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.RASPI_SSH_KEY }}
+          CF_CLIENT_ID: ${{ secrets.CFACCESSCLIENTID }}
+          CF_CLIENT_SECRET: ${{ secrets.CFACCESSCLIENTSECRET }}
+          RAPI_USER: ${{ secrets.RASPI_USER_NAME }}
+        run: |
+          # SSH鍵の設定
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # SSH接続時にCloudflareの認証トークンを自動で挟む設定
+          # ホスト名はご自身のもの（ssh-deploy.yourdomain.comなど）に書き換えてください
+          cat <<EOF > ~/.ssh/config
+          Host raspberrypi
+            HostName taninin.com
+            ProxyCommand cloudflared access ssh --hostname %h --id $CF_CLIENT_ID --secret $CF_CLIENT_SECRET
+            User $RAPI_USER
+            StrictHostKeyChecking no
+          EOF
+
+          # .git を除外して、ラズパイの該当ディレクトリへファイルを同期
+          # /path/to/your/app/ はラズパイ側の実際のパスに変えてください
+          rsync -avz --delete --exclude='.git/' ./ raspberrypi:/path/to/your/app/
