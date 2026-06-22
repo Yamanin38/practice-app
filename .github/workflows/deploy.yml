@@ -44,6 +44,11 @@ jobs:
             ProxyCommand cloudflared access ssh --hostname %h
           EOF
           chmod 600 $HOME/.ssh/config
-
-          # 3. rsyncの実行
-          rsync -avz --progress --delete --exclude='.git/' -e "ssh -F $HOME/.ssh/config -v" ./ yamapi:/home/pi/practice-app/
+          
+          # 4. rsyncの実行（--deleteで同期しつつ、必要なファイルは除外して保護する）
+          rsync -avz --progress --delete \
+            --exclude='.git/' \
+            --exclude='.git_backup/' \
+            --exclude='.env' \
+            --exclude='storage/' \
+            -e "ssh -F $HOME/.ssh/config" ./ yamapi:/home/pi/practice-app/
