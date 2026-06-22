@@ -25,6 +25,9 @@ class ImageUploadJob < ApplicationJob
     # 【追加】処理が完了（または失敗）したら、キャッシュに完了フラグを書き込む
     # 有効期限を短く（例：5分）設定しておきます
     Rails.cache.write("upload_job_#{job_tracking_id}", "completed", expires_in: 5.minutes)
+    
+    # 🌟 メモリ対策：C拡張(Vips)が確保したメモリをRubyに早めに回収させる
+    GC.start
   end
 
   private
