@@ -5,6 +5,8 @@ class ApplicationController < ActionController::Base
   before_action :set_user   # ← この行を追加
 
   def current_user
+    # 💡 既に取得済み（@current_userが定義されている）なら、それを返して終了
+    return @current_user if defined?(@current_user)
     # セッションに user_id がなければ何もしない
     return nil unless session[:user_id]
 
@@ -27,6 +29,8 @@ class ApplicationController < ActionController::Base
     super
     payload[:remote_ip] = request.remote_ip
     payload[:user_id] = current_user.id if current_user
+    # logrageに表示するためのやつ
+    payload[:username] = current_user ? current_user.username : 'guest'
   end
 
   private

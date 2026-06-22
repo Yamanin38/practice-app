@@ -59,6 +59,12 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+   # ログレベルを info に変更して細かいデバッグログ（SQLなど）を出さないようにする
+  config.log_level = :info
+  
+  # Action Viewのレンダリングログを無効化する
+  config.action_view.logger = nil
+
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)
     .tap  { |logger| logger.formatter = ::Logger::Formatter.new }
