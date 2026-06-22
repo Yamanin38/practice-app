@@ -66,7 +66,7 @@
       </div>
 
     <% else %>
-      <div class="gallery-grid">
+      <div class="gallery-grid" id="galleryGrid">
         <div class="gallery-item placeholder">
           <div class="placeholder-content">
             <p>写真がまだ投稿されていません</p>
@@ -1631,8 +1631,13 @@ renderCalendar();
 // Ajax でギャラリーを更新
 function fetchImages(date) {
   const url = date ? `/gallery?date=${date}` : '/gallery';
+  const fetchUrl = new URL(url, window.location.origin);
+  fetchUrl.searchParams.append('_t', Date.now()); // キャッシュ対策
 
-  fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+  fetch(fetchUrl.toString(), { 
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    cache: 'no-store'
+  })
     .then(res => res.text())
     .then(html => {
       const parser = new DOMParser();
@@ -1643,24 +1648,32 @@ function fetchImages(date) {
       const oldGrid = document.getElementById('galleryGrid');
       if (newGrid && oldGrid) {
         oldGrid.replaceWith(newGrid);
-      } else if (!newGrid && oldGrid) {
-        // 該当なし（空状態）
-        oldGrid.innerHTML = '<div class="gallery-item placeholder"><div class="placeholder-content"><p>写真がまだ投稿されていません</p></div></div>';
       }
 
       // ページネーションを差し替え
       const newPager = doc.querySelector('.pagination-container');
       const oldPager = document.querySelector('.pagination-container');
       if (oldPager) {
-        if (newPager) oldPager.replaceWith(newPager);
-        else oldPager.innerHTML = '';
+        if (newPager) {
+          oldPager.replaceWith(newPager);
+        } else {
+          oldPager.remove();
+        }
+      } else if (newPager) {
+        const currentGrid = document.getElementById('galleryGrid');
+        if (currentGrid) {
+          currentGrid.insertAdjacentElement('afterend', newPager);
+        }
       }
 
       // URLを書き換え（ブラウザ履歴に残す）
       history.pushState({}, '', url);
 
       // トグルボタンのテキスト更新
-      document.getElementById('calToggleText').textContent = date || '日付で絞り込む';
+      const calToggleText = document.getElementById('calToggleText');
+      if (calToggleText) {
+        calToggleText.textContent = date || '日付で絞り込む';
+      }
     })
     .catch(err => console.error('fetchImages error:', err));
 }
