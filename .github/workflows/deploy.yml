@@ -37,7 +37,7 @@ jobs:
           # ホスト名はご自身のもの（ssh-deploy.yourdomain.comなど）に書き換えてください
           # GitHub Actionsの .ssh/config の内容
           cat <<EOF > ~/.ssh/config
-          Host yamapi
+          Host pi
             HostName ssh-deploy.taninin.com
             User ${{ secrets.RASPI_USER_NAME }}
             StrictHostKeyChecking no
