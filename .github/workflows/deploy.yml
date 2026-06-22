@@ -45,4 +45,4 @@ jobs:
 
           # .git を除外して、ラズパイの該当ディレクトリへファイルを同期
           # /path/to/your/app/ はラズパイ側の実際のパスに変えてください
-          rsync -avz --delete --exclude='.git/' ./ raspberrypi:/path/to/your/app/
+          rsync -avz --delete --exclude='.git/' ./ yamapi:/home/pi/practice-app/
