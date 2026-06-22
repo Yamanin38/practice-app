@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # クラウド（GitHub側）のサーバーで実行 # 
+    runs-on: ubuntu-latest  # クラウド（GitHub側）のサーバーで実行 # test
 
     steps:
       # 1. 最新コードのチェックアウト
