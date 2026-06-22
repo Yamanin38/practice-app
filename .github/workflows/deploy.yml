@@ -36,13 +36,18 @@ jobs:
           # SSH接続時にCloudflareの認証トークンを自動で挟む設定
           # ホスト名はご自身のもの（ssh-deploy.yourdomain.comなど）に書き換えてください
           cat <<EOF > ~/.ssh/config
-          Host yamapi
+          Host ssh-deploy.taninin.com
             HostName ssh-deploy.taninin.com
-            ProxyCommand cloudflared access ssh --hostname %h --id $CF_CLIENT_ID --secret $CF_CLIENT_SECRET
-            User $RAPI_USER
+            ProxyCommand cloudflared access ssh --hostname %h --id "${{ secrets.CFACCESSCLIENTID }}" --secret "${{ secrets.CFACCESSCLIENTSECRET }}"
+            User ${{ secrets.RASPI_USER_NAME }}
             StrictHostKeyChecking no
+            # 追加：通信がなくても接続を維持し続ける設定
+            ServerAliveInterval 60
+            ServerAliveCountMax 3
+            # 追加：接続開始の待ち時間を増やす
+            ConnectTimeout 60
           EOF
 
           # .git を除外して、ラズパイの該当ディレクトリへファイルを同期
           # /path/to/your/app/ はラズパイ側の実際のパスに変えてください
-          rsync -avz --delete --exclude='.git/' ./ yamapi:/home/pi/practice-app/
+          rsync -avz --delete --exclude='.git/' ./ ssh-deploy.taninin.com:/home/pi/practice-app/
