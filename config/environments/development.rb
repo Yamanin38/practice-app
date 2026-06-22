@@ -7,19 +7,12 @@ Rails.application.configure do
   # it changes. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
 
-  # Logrageを有効化
-  config.lograge.enabled = true
+  # ログレベルを info に変更して細かいデバッグログ（SQLなど）を出さないようにする
+  #config.log_level = :info
+  
+  # Action Viewのレンダリングログを無効化する
+  config.action_view.logger = nil
 
-  # ログのフォーマットをシンプルにする（必要に応じてカスタマイズ可能）
-  config.lograge.formatter = Lograge::Formatters::KeyValue.new
-
-  # ログに含めたい情報を追加（例: user_id や params）
-  config.lograge.custom_options = lambda do |event|
-    {
-      time: Time.now,
-      params: event.payload[:params].except('controller', 'action')
-    }
-  end
   config.enable_reloading = true
 
   # Do not eager load code on boot.
