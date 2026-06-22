@@ -18,6 +18,10 @@ COPY Gemfile.lock /app/Gemfile.lock
 RUN bundle config set frozen false
 RUN bundle install
 
+# jemallocを強制的にロードさせる (固定設定)
+# 32bit (armhf) 用にパスを修正
+ENV LD_PRELOAD=/usr/lib/arm-linux-gnueabihf/libjemalloc.so.2
+
 
 COPY . /app
 
