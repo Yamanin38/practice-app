@@ -3,6 +3,13 @@
 # Vipsを利用するための設定
 Rails.application.config.image_processing_backend = :vips
 
+if defined?(::Vips)
+  # メモリ使用量を抑えるためVipsのキャッシュを完全に無効化する
+  ::Vips.cache_set_max(0)
+  ::Vips.cache_set_max_mem(0)
+  ::Vips.cache_set_max_files(0)
+end
+
 ActiveStorage::Analyzer::ImageAnalyzer.prepend(Module.new do
   def metadata
     # blobメソッドを使用してファイルをダウンロードする
