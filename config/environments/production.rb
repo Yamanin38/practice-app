@@ -45,7 +45,7 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # ProxyモードでActiveStorageを配信（URLが固定されキャッシュが効く）
-  # config.active_storage.resolve_model_to_route = :rails_storage_proxy
+  config.active_storage.resolve_model_to_route = :rails_storage_proxy
 
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
