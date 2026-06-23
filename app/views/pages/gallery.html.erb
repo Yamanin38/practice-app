@@ -1138,6 +1138,21 @@
 
       // 2. フォームデータを取得して非同期送信
       const formData = new FormData(uploadForm);
+      formData.delete('files[]');
+      
+      try {
+        const compressPromises = selectedFiles.map(file => compressImage(file));
+        const compressedFiles = await Promise.all(compressPromises);
+        
+        compressedFiles.forEach(file => {
+          formData.append('files[]', file);
+        });
+      } catch (err) {
+        console.error('画像圧縮エラー:', err);
+        alert('画像の圧縮に失敗しました。');
+        resetUploadForm();
+        return;
+      }
       
       try {
         const createRes = await fetch(uploadForm.action, {
@@ -1164,6 +1179,54 @@
       }
     });
   }
+
+  // ▼▼ ここから追加：画像を圧縮する関数 ▼▼
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        
+        let width = img.width;
+        let height = img.height;
+        const MAX_HEIGHT = 720;
+        
+        if (height > MAX_HEIGHT) {
+          width = Math.round(width * (MAX_HEIGHT / height));
+          height = MAX_HEIGHT;
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const baseName = file.name.replace(/\.[^/.]+$/, "");
+            const newFile = new File([blob], baseName + ".jpg", {
+              type: "image/jpeg",
+              lastModified: Date.now()
+            });
+            resolve(newFile);
+          } else {
+            reject(new Error("Canvas to Blob failed"));
+          }
+        }, "image/jpeg", 0.55);
+      };
+      
+      img.onerror = (err) => {
+        URL.revokeObjectURL(url);
+        reject(err);
+      };
+      
+      img.src = url;
+    });
+  }
+  // ▲▲ ここまで追加 ▲▲
 
     // ▼▼ ここから追加：フォームをリセットする関数 ▼▼
   function resetUploadForm() {
