@@ -13,7 +13,7 @@ services:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
       # jemallocチューニング設定
-      - MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:1000,muzzy_decay_ms:1000
+      - MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:1000,muzzy_decay_ms:1000,narenas:2
       - MALLOC_ARENA_MAX=2
       - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
       - RAILS_ENV=production
