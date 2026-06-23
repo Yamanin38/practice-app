@@ -2,7 +2,6 @@
 class ImageUploadJob < ApplicationJob
   queue_as :default
 
-  # ジョブの追跡ID（job_id）を受け取れるようにします
   def perform(user_id, tempfile_path, original_filename, job_tracking_id)
     user = User.find(user_id)
     image = user.images.build
@@ -16,17 +15,19 @@ class ImageUploadJob < ApplicationJob
     )
 
     image.save!
-     # 🌟 ここを追記：ジョブの中で事前にサムネイル画像（Variant）を生成しておく
+
+    # 事前にサムネイル画像（Variant）を生成
     image.file.variant(resize_to_fill: [800, 800]).processed
     image.file.variant(resize_to_fill: [400, 400]).processed
   ensure
     File.delete(tempfile_path) if File.exist?(tempfile_path)
-    
-    # 【追加】処理が完了（または失敗）したら、キャッシュに完了フラグを書き込む
-    # 有効期限を短く（例：5分）設定しておきます
     Rails.cache.write("upload_job_#{job_tracking_id}", "completed", expires_in: 5.minutes)
     
-    # 🌟 メモリ対策：C拡張(Vips)が確保したメモリをRubyに早めに回収させる
+    # 🌟 GCの対象になりやすくするため、大きな変数をnilでクリアしておく（ダメ押し）
+    compressed_io = nil
+    image = nil
+    
+    # 🌟 メモリ対策：確保したメモリをRubyに早めに回収させる
     GC.start
   end
 
@@ -44,6 +45,10 @@ class ImageUploadJob < ApplicationJob
       output.write(buf)
       output.rewind
     end
+
+    # 🌟 メモリ解放の準備：使い終わったVipsオブジェクトの参照を切る
+    image = nil 
+
     output
   end
 end

@@ -25,7 +25,7 @@ services:
   db:
     image: mariadb:10.11
     restart: always
-    command: --innodb-buffer-pool-size=64M --innodb-log-buffer-size=8M --max-connections=20
+    command: --innodb-buffer-pool-size=64M --innodb-log-buffer-size=8M --max-connections=20 --innodb-temp-data-file-path=ibtmp1:12M:autoextend:max:32M
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME}

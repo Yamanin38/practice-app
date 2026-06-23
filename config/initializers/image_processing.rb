@@ -12,16 +12,22 @@ end
 
 ActiveStorage::Analyzer::ImageAnalyzer.prepend(Module.new do
   def metadata
-    # blobメソッドを使用してファイルをダウンロードする
     download_blob_to_tempfile do |tempfile|
       image = ::Vips::Image.new_from_file(tempfile.path)
+      
+      # 🌟 サイズを変数に退避
+      w = image.width
+      h = image.height
+      
+      # 🌟 Vipsオブジェクトの参照を即座に切る
+      image = nil
+      
       {
-        width: image.width,
-        height: image.height
+        width: w,
+        height: h
       }
     end
   rescue ::Vips::Error
-    # Vipsで処理できない場合は親のデフォルト処理（ImageMagick等）へフォールバック
     super
   end
 end) if defined?(::Vips)
