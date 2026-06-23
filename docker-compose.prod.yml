@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 400M
+          memory: 550M
     env_file:
       - .env
     logging:                  # 👈 ここから追記
@@ -65,7 +65,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 250M
+          memory: 128M
     volumes:
       # データベースの中身が消えないようにボリュームをマウントします
       - mariadb_data:/var/lib/mysql
