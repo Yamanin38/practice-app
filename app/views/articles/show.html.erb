@@ -19,7 +19,7 @@
         <% end %>
         
         <%# ユーザー名はバッジの横に並べて表示 %>
-        <span style="font-weight: bold; color: var(--clr-text, #333);">
+        <span style="font-weight: bold; color: rgb(0 0 0 / 71%);">
           <%= @article.user.username %>
         </span>
 
@@ -102,18 +102,18 @@
     <%= form_with model: @article, local: true do |f| %>
       <div class="form-group" style="margin-bottom: 16px;">
         <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-        <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
+        <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #38220c; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #ffeeca;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
       </div>
 
       <div class="form-group" style="margin-bottom: 16px;">
         <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
         <%# ⭕ 修正: resize: vertical; を追加し、横方向への拡大を禁止 %>
-        <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
+        <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #38220c; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #ffeeca; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
       </div>
 
       <div class="form-group" style="margin-bottom: 16px;">
         <%= f.label :tags, "タグ (カンマ区切り)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-        <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", placeholder: "例: 日記, お知らせ" %>
+        <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #38220c; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #ffeeca;", placeholder: "例: 日記, お知らせ" %>
       </div>
 
       <div class="form-group" style="margin-bottom: 24px;">
