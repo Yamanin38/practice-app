@@ -16,4 +16,4 @@ port ENV.fetch("PORT") { 3000 }
 environment rails_env
 pidfile ENV.fetch("PIDFILE") { "tmp/pids/server.pid" }
 plugin :tmp_restart
-plugin :solid_queue
+# plugin :solid_queue
