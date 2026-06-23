@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 400M
     env_file:
       - .env
     logging:                  # 👈 ここから追記
@@ -44,38 +44,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-    command: bash -c "bundle exec rake solid_queue:start"
-    restart: always
-    volumes:
-      - /home/pi/practice-app/storage:/app/storage
-    environment:
-      - TZ=Asia/Tokyo
-      - MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:1000,muzzy_decay_ms:1000,narenas:2
-      - MALLOC_ARENA_MAX=2
-      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
-      - RAILS_ENV=production
-      - VIPS_CACHE_MAX=0
-      - VIPS_CACHE_MAX_MEM=10000000
-    deploy:
-      resources:
-        limits:
-          memory: 250M
-    env_file:
-      - .env
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    depends_on:
-      db:
-        condition: service_healthy
-
   db:
     image: yobasystems/alpine-mariadb
     restart: always
