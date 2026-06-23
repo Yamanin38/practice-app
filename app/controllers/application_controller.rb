@@ -1,5 +1,9 @@
 class ApplicationController < ActionController::Base
   helper_method :current_user
+
+  # テストデプロイ用ベーシック認証（BASIC_AUTH_ENABLED=true のときのみ有効）
+  before_action :basic_auth
+
   # before_action で一度だけロードしてインスタンス変数に入れる
   before_action :set_current_user_for_views
   before_action :set_user   # ← この行を追加
@@ -34,6 +38,15 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def basic_auth
+    return unless ENV['BASIC_AUTH_ENABLED'] == 'true'
+
+    authenticate_or_request_with_http_basic('Preview') do |username, password|
+      username == ENV.fetch('BASIC_AUTH_USER', 'preview') &&
+        password == ENV.fetch('BASIC_AUTH_PASSWORD', 'changeme')
+    end
+  end
 
   def set_current_user_for_views
     @current_user_view = current_user
