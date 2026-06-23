@@ -55,7 +55,9 @@ class ImagesController < ApplicationController
       article_titles = @image.article_images.includes(:article).map { |ai| ai.article.title }
       redirect_to gallery_path, alert: "この画像は以下の活動記録で使用されているため削除できません：#{article_titles.join('、')}", status: :see_other
     else
+      @image.file.purge if @image.file.attached?
       @image.destroy
+      clean_empty_storage_folders
       redirect_to gallery_path, status: :see_other
     end
   end
@@ -72,5 +74,26 @@ class ImagesController < ApplicationController
 
   def authorize_admin!
     redirect_to root_path unless current_user&.admin?
+  end
+
+  def clean_empty_storage_folders
+    require 'find'
+    storage_path = Rails.root.join('storage').to_s
+    return unless Dir.exist?(storage_path)
+
+    dirs = []
+    Find.find(storage_path) do |path|
+      dirs << path if File.directory?(path)
+    end
+
+    # 階層の深い順にソートして、空のディレクトリを削除
+    dirs.sort_by(&:length).reverse_each do |dir|
+      next if dir == storage_path
+      begin
+        Dir.rmdir(dir) if Dir.empty?(dir)
+      rescue SystemCallError
+        # 削除できない場合や空でない場合は無視
+      end
+    end
   end
 end
