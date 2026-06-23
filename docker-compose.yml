@@ -21,7 +21,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 400M
+          memory: 550M
   db:
     image: mariadb:10.11
     restart: always
@@ -35,7 +35,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 250M
+          memory: 128M
     volumes:
       - mariadb_data:/var/lib/mysql
 volumes:
