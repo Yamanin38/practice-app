@@ -1313,6 +1313,8 @@
     const confirmImageDeleteBtn = document.getElementById('confirmImageDeleteBtn');
     if (confirmImageDeleteBtn) {
       confirmImageDeleteBtn.addEventListener('click', () => {
+        confirmImageDeleteBtn.disabled = true;
+        confirmImageDeleteBtn.textContent = '削除中...';
         document.getElementById('deleteConfirmModal').style.display = 'none';
         modalDeleteForm.submit();
       });
@@ -1324,8 +1326,8 @@
     [cancelImageDeleteBtn, closeDeleteConfirmModal].forEach(btn => {
       if (btn) {
         btn.addEventListener('click', () => {
-          confirmImageDeleteBtn.disabled = true;          // ← 追加
-          confirmImageDeleteBtn.textContent = '削除中...'; // ← 追加
+          confirmImageDeleteBtn.disabled = false;
+          confirmImageDeleteBtn.textContent = '削除する';
           document.getElementById('deleteConfirmModal').style.display = 'none';
         });
       }
