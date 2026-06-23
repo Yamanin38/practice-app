@@ -10,6 +10,14 @@ services:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
      - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
+     # キャッシュする画像数を0にする（メモリに保持しない）
+     - VIPS_CACHE_MAX=0
+     # キャッシュメモリサイズを制限する（10MB程度に制限）
+     - VIPS_CACHE_MAX_MEM=10000000
+     # GCを積極的に動かすための設定
+     - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.2
+     - RUBY_GC_MALLOC_LIMIT=4000000
+     - RUBY_GC_MALLOC_LIMIT_MAX=16000000
     deploy:
       resources:
         limits:

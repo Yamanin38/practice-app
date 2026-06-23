@@ -80,6 +80,10 @@
     </main>
 
     <footer class="footer">
+      <p>
+        このページで利用している株式会社スクウェア・エニックスを代表とする共同著作者が権利を所有する画像の転載・配布は禁止いたします。<br>
+        (C) ARMOR PROJECT/BIRD STUDIO/SQUARE ENIX All Rights Reserved.
+      </p>
       <p>&copy; 2026 Thrones Site. All rights reserved.</p>
     </footer>
 
@@ -264,6 +268,12 @@
     right: 50px;       /* 画面右端からの好みの余白 */
     top: 50%;          /* 上下中央に配置 */
     transform: translateY(-50%); /* 上下中央のズレを補正 */
+}
+
+@media (max-width: 1024px) {
+  .footer p{
+    font-size: 9px;
+  }
 }
 /* 画面幅が768px以下（スマホ・タブレット等）のときの調整 */
 @media (max-width: 768px) {
