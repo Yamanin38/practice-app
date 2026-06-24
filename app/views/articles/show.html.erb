@@ -170,8 +170,8 @@
       </div>
 
       <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; border-top: none; padding-top: 0; margin-top: 0;">
-        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
         <%= f.submit "変更を保存する", class: "btn btn-primary" %>
+        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">キャンセル</button>
       </div>
     <% end %>
   </div>
@@ -198,7 +198,42 @@
     </div>
   </div>
 </div>
+<div class="modal" id="discardConfirmModal" style="display: none; justify-content: center; align-items: center; transition-property: background-color, opacity !important; z-index: 20000;">
+  
+  <div class="modal-content modal-sm" style="height: auto !important; transition-property: opacity, transform !important;">
+    <div class="modal-header">
+      <h2>⚠️ 変更を破棄しますか？</h2>
+      <button class="modal-close" id="closeDiscardConfirmModal">&times;</button>
+    </div>
+  
+    <div class="modal-body">
+      <p style="color: var(--clr-text); margin-bottom: 24px;">編集中の内容は保存されません。</p>
+      <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+        <button type="button" class="btn btn-danger3" id="confirmDiscardBtn">破棄する</button>
+        <button type="button" class="btn btn-secondary" id="cancelDiscardBtn">キャンセル</button>
+      </div>
+    </div>
+  </div>
+</div>
 <style>
+.btn-danger3 {
+    background: linear-gradient(180deg, #c0392b 0%, #922b21 100%);
+    color: #fff;
+    border: 1px solid #7b241c;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+    padding: 9px 28px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(255, 100, 80, .25) inset, 0 3px 8px rgba(0, 0, 0, .6);
+    transition: filter .15s, box-shadow .15s;
+  }
+  #discardConfirmModal {
+  animation: discardModalFadeIn .2s ease;
+}
+
+  .btn-danger3:hover { filter: brightness(1.15); }
   /* ライトボックスの背景（扉アニメーションの上に来るようz-indexを高めに設定） */
   .lightbox-overlay {
     display: none;
@@ -326,6 +361,11 @@
     from { opacity: 0; transform: translate(-50%, -48%); }
     to { opacity: 1; transform: translate(-50%, -50%); }
   }
+
+  @keyframes discardModalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
   /* ======== カレンダー機能のスタイル ======== */
   .btn-cal-toggle {
@@ -645,6 +685,118 @@ document.getElementById('closeDeleteConfirmModal').addEventListener('click', () 
 document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
   document.getElementById('deleteConfirmModal').style.display = 'none';
   document.body.style.overflow = '';
+});
+
+// 編集フォームの初期状態を保持する変数
+let editFormInitialState = {};
+
+// 現在のフォームの状態（値）をオブジェクトとして取得する関数
+function getEditFormState() {
+  const title = document.getElementById('article_title')?.value.trim() || '';
+  const content = document.getElementById('article_content')?.value.trim() || '';
+  const tags = document.getElementById('article_tags')?.value.trim() || '';
+  
+  // 選択されている画像のIDを配列として取得
+  const checkedImages = [];
+  document.querySelectorAll('#editArticleModal input[name="image_ids[]"]:checked').forEach(cb => {
+    checkedImages.push(cb.value);
+  });
+  
+  return {
+    title: title,
+    content: content,
+    tags: tags,
+    images: checkedImages.join(',')
+  };
+}
+
+// 既存の openEditModal を拡張（開いた瞬間の初期値を記憶）
+const originalOpenEditModal = window.openEditModal;
+window.openEditModal = function() {
+  if (typeof originalOpenEditModal === 'function') {
+    originalOpenEditModal();
+  } else {
+    // 既存の処理がない場合のフォールバック（表示切り替え）
+    const modal = document.getElementById('editArticleModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  // モーダルが開いた時点のフォームの初期状態を記憶
+  editFormInitialState = getEditFormState();
+};
+
+// 既存の closeEditModal を上書き・拡張（変更がある場合のみ破棄確認を挟む）
+// 既存の closeEditModal を上書き・拡張（変更がある場合のみ破棄確認を挟む）
+window.closeEditModal = function() {
+  const currentState = getEditFormState();
+  
+  // 初期状態と現在の状態を比較し、どこかに変更があるか判定
+  const isChanged = currentState.title !== editFormInitialState.title ||
+                    currentState.content !== editFormInitialState.content ||
+                    currentState.tags !== editFormInitialState.tags ||
+                    currentState.images !== editFormInitialState.images;
+
+  if (isChanged) {
+    // 【修正箇所】 display を 'block' から 'flex' に変更して中央に一発で表示させる
+    document.getElementById('discardConfirmModal').style.display = 'flex';
+  } else {
+    // 変更がない場合はそのまま閉じる
+    forceCloseEditModal();
+  }
+};
+
+// 実際に編集モーダルを閉じ、フォームの状態を復元する処理
+function forceCloseEditModal() {
+  const modal = document.getElementById('editArticleModal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    
+    // キャンセルされたためフォームを元の状態（初期状態）に戻す
+    const form = modal.querySelector('form');
+    if (form) {
+      form.reset();
+      // 画像ピッカーのチェックボックス枠線の表示スタイルもリセットに追従させる
+      modal.querySelectorAll('input[name="image_ids[]"]').forEach(cb => {
+        if (typeof toggleImageSelect === 'function') {
+          toggleImageSelect(cb);
+        }
+      });
+    }
+  }
+}
+
+// 破棄確認モーダル内の各ボタンに対するイベントリスナー設定
+document.addEventListener('DOMContentLoaded', () => {
+  const closeDiscardConfirmModal = document.getElementById('closeDiscardConfirmModal');
+  const cancelDiscardBtn = document.getElementById('cancelDiscardBtn');
+  const confirmDiscardBtn = document.getElementById('confirmDiscardBtn');
+  const discardModal = document.getElementById('discardConfirmModal');
+
+  // 「×」ボタンで破棄確認のみを閉じる
+  if (closeDiscardConfirmModal) {
+    closeDiscardConfirmModal.addEventListener('click', () => {
+      discardModal.style.display = 'none';
+    });
+  }
+
+  // 「キャンセル」ボタンで破棄確認のみを閉じる
+  if (cancelDiscardBtn) {
+    cancelDiscardBtn.addEventListener('click', () => {
+      discardModal.style.display = 'none';
+    });
+  }
+
+  // 「破棄する」ボタンで破棄確認を閉じ、編集モーダルも閉じて変更をリセット
+  if (confirmDiscardBtn) {
+    confirmDiscardBtn.addEventListener('click', () => {
+      discardModal.style.display = 'none';
+      forceCloseEditModal();
+    });
+  }
 });
 
 </script>
