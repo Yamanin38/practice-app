@@ -95,17 +95,17 @@
         
         <div class="form-group" style="margin-bottom: 16px;">
           <%= f.label :title, "タイトル", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-          <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
+          <%= f.text_field :title, class: "form-control", style: "width: 100%; padding: 10px; background: #241b12; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #ffeeca;", required: true, placeholder: "タイトル(40字以内)", data: { maxweight: 40 } %>
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <%= f.label :content, "本文 (Markdown)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-          <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #333; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
+          <%= f.text_area :content, rows: 12, class: "form-control", style: "width: 100%; padding: 10px; background: #241b12; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); font-family: monospace; color: #ffeeca; resize: vertical;", required: true, placeholder: "本文(2000字以内)", data: { maxweight: 2000 } %>
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
           <%= f.label :tags, "タグ (カンマ区切り)", style: "display: block; margin-bottom: 6px; color: var(--clr-text);" %>
-          <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #fff; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #333;", placeholder: "例: 日記, お知らせ" %>
+          <%= f.text_field :tags, class: "form-control", style: "width: 100%; padding: 10px; background: #241b12; border: 1px solid var(--clr-border); border-radius: var(--radius-sm); color: #ffeeca;", placeholder: "例: 日記, お知らせ" %>
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">
@@ -161,8 +161,8 @@
         </div>
       </div>
       <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
-        <button type="button" class="btn btn-secondary" id="cancelPostBtn" onclick="document.getElementById('articleModal').style.display='none'">キャンセル</button>
         <%= f.submit "投稿する", class: "btn btn-primary" %>
+        <button type="button" class="btn btn-secondary" id="cancelPostBtn">キャンセル</button>
       </div>
     <% end %>
   </div>
@@ -244,6 +244,25 @@
   </div>
 </div>
 </div>
+
+<div class="modal" id="deleteConfirmModal">
+    </div>
+
+  <div class="modal" id="discardConfirmModal" style="z-index: 3000;">
+    <div class="modal-content modal-sm" style="margin: 120px auto;">
+      <div class="modal-header">
+        <h2>⚠️ 変更を破棄しますか？</h2>
+        <button class="modal-close" id="closeDiscardConfirmModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--clr-text); margin-bottom: 24px;">編集中の内容は保存されません。</p>
+        <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center;">
+          <button type="button" class="btn btn-danger3" id="confirmDiscardBtn">破棄する</button>
+          <button type="button" class="btn btn-secondary" id="cancelDiscardBtn">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <style>
   /* ── フィルター行（カレンダー＋検索） ── */
@@ -1111,6 +1130,8 @@
     }
 
     // ── 投稿モーダル ──
+
+    // 1. 新しい活動記録を投稿（ボタンを押してモーダルを開く処理 ※ここが消えていました）
     const newArticleBtn = document.getElementById('newArticleBtn');
     if (newArticleBtn) {
       newArticleBtn.addEventListener('click', (e) => {
@@ -1118,17 +1139,71 @@
         openModal('articleModal');
       });
     }
-    // ── 投稿モーダル ──
-const closeArticleModal = document.getElementById('closeArticleModal');
-if (closeArticleModal) {
-  closeArticleModal.addEventListener('click', () => closeModal('articleModal'));
-}
+    
+    // 2. フォームに入力があるかどうかを判定する関数
+    function hasArticleInput() {
+      const title = document.getElementById('article_title')?.value.trim() || '';
+      const content = document.getElementById('article_content')?.value.trim() || '';
+      const tags = document.getElementById('article_tags')?.value.trim() || '';
+      const form = document.getElementById('articleForm');
+      const images = form ? form.querySelectorAll('input[name="image_ids[]"]:checked').length : 0;
+      
+      return title !== '' || content !== '' || tags !== '' || images > 0;
+    }
 
-// IDを「cancelPostBtn」に変更し、存在チェックを入れる
-const cancelPostBtn = document.getElementById('cancelPostBtn');
-if (cancelPostBtn) {
-  cancelPostBtn.addEventListener('click', () => closeModal('articleModal'));
-}
+    // 3. フォームの入力内容を完全にリセットする関数
+    function clearArticleForm() {
+      const form = document.getElementById('articleForm');
+      if (!form) return;
+      form.reset(); // テキストフィールドをリセット
+      
+      // 画像選択の見た目（枠線や透明度）も初期状態（1px半透明）にリセット
+      form.querySelectorAll('.image-checkbox-label').forEach(label => {
+        const thumb = label.querySelector('.image-thumbnail');
+        if (thumb) {
+          thumb.style.border = "1px solid var(--clr-border)";
+          thumb.style.opacity = "0.5";
+        }
+      });
+    }
+
+    // 4. モーダルを閉じるアクション時の制御
+    function attemptCloseArticleModal() {
+      if (hasArticleInput()) {
+        // 入力がある場合は破棄確認モーダルを表示
+        document.getElementById('discardConfirmModal').style.display = 'block';
+      } else {
+        // 入力がない場合はそのまま閉じる
+        closeModal('articleModal');
+      }
+    }
+
+    // 5. 閉じるボタン(×)とキャンセルボタンへのイベント割り当て
+    const closeArticleModal = document.getElementById('closeArticleModal');
+    if (closeArticleModal) {
+      closeArticleModal.addEventListener('click', attemptCloseArticleModal);
+    }
+
+    const cancelPostBtn = document.getElementById('cancelPostBtn');
+    if (cancelPostBtn) {
+      cancelPostBtn.addEventListener('click', attemptCloseArticleModal);
+    }
+
+    // ── 破棄確認モーダルのボタン制御 ──
+    
+    // 「破棄する」ボタンが押された時
+    document.getElementById('confirmDiscardBtn').addEventListener('click', () => {
+      clearArticleForm(); // 入力内容をすべて消去してクリアにする
+      document.getElementById('discardConfirmModal').style.display = 'none'; // 確認モーダルを閉じる
+      closeModal('articleModal'); // メインの投稿モーダルを閉じる
+    });
+
+    // 「キャンセル」および確認モーダルの「×」ボタンが押された時
+    const closeDiscardConfirm = () => {
+      document.getElementById('discardConfirmModal').style.display = 'none'; // 確認モーダルだけを閉じて、入力内容を維持したまま編集に戻る
+    };
+    document.getElementById('closeDiscardConfirmModal').addEventListener('click', closeDiscardConfirm);
+    document.getElementById('cancelDiscardBtn').addEventListener('click', closeDiscardConfirm);
 
 // ── 編集モーダル ──（こちらも念のため安全対策をしておきます）
 const closeEditModal = document.getElementById('closeEditModal');
