@@ -37,6 +37,15 @@ class ApplicationController < ActionController::Base
     payload[:username] = current_user ? current_user.username : 'guest'
   end
 
+  # app/controllers/application_controller.rb
+
+    rescue_from ActiveRecord::RecordNotFound do |e|
+      respond_to do |format|
+        format.html { render "errors/not_found", status: :not_found }
+        format.json { render json: { error: "見つかりません" }, status: :not_found }
+      end
+    end
+
   private
 
   def basic_auth
