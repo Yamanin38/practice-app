@@ -5,7 +5,9 @@ Rails.application.configure do
 
   # Code is not reloaded between requests.
   config.enable_reloading = false
-
+  # 👇 以下の3行を追加します（許可するホストのリスト）
+  config.hosts << "127.0.0.1"
+  config.hosts << "localhost"
   # 自分のドメインからのアクセスを許可する
   config.hosts << "taninin.com"
 
