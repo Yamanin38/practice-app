@@ -13,6 +13,12 @@ services:
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
+      # ImageMagickのメモリ使用量を制限する（ラズパイのメモリ対策）
+      - MAGICK_MEMORY_LIMIT=32MiB
+      - MAGICK_MAP_LIMIT=64MiB
+      - MAGICK_AREA_LIMIT=32MiB
+      - MAGICK_DISK_LIMIT=256MiB
+      - MAGICK_THREAD_LIMIT=1
       # jemallocチューニング設定
       - MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:1000,muzzy_decay_ms:1000,narenas:2
       - MALLOC_ARENA_MAX=2
@@ -24,9 +30,9 @@ services:
       - WEB_CONCURRENCY=0      # 👈 プロセス数を「シングル（0）」にしてメモリを劇的に節約
 #     - RAILS_MAX_THREADS=5    # 👈 同時処理スレッド数を5程度に制限（ラズパイにはこれで十分）
       # キャッシュする画像数を0にする（メモリに保持しない）
-      - VIPS_CACHE_MAX=0
+      #- VIPS_CACHE_MAX=0
       # キャッシュメモリサイズを制限する（10MB程度に制限）
-      - VIPS_CACHE_MAX_MEM=10000000
+      #- VIPS_CACHE_MAX_MEM=10000000
       # GCを積極的に動かすための設定
       - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.2
       - RUBY_GC_MALLOC_LIMIT=4000000
