@@ -951,7 +951,8 @@
   position: relative;
   display: flex;             /* 追加: 内部をFlexboxにする */
   flex-direction: column;    /* 追加: 縦並びにする */
-  max-height: 90vh;          /* 追加: モーダルの最大高さを画面の90%に制限 */
+  max-height: 85vh;          /* 古いブラウザ用のフォールバック */
+  max-height: 88dvh;         /* スマホUIの変動を考慮した動的な高さ */
 }
 
 #articleModal .modal-content > .close,
