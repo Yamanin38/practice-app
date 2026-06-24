@@ -13,5 +13,6 @@ module App
     config.active_record.default_timezone = :local  # ← 追加
     config.autoload_lib(ignore: %w(assets tasks))
     config.active_job.queue_adapter = :solid_queue
+    config.active_storage.variant_processor = :mini_magick   # ← 追加
   end
 end

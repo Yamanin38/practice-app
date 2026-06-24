@@ -11,9 +11,15 @@ services:
      - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
      - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
      # キャッシュする画像数を0にする（メモリに保持しない）
-     - VIPS_CACHE_MAX=0
+     #- VIPS_CACHE_MAX=0
      # キャッシュメモリサイズを制限する（10MB程度に制限）
-     - VIPS_CACHE_MAX_MEM=10000000
+     #- VIPS_CACHE_MAX_MEM=10000000
+     # ImageMagickのメモリ使用量を制限する（ラズパイのメモリ対策）
+     - MAGICK_MEMORY_LIMIT=32MiB
+     - MAGICK_MAP_LIMIT=64MiB
+     - MAGICK_AREA_LIMIT=32MiB
+     - MAGICK_DISK_LIMIT=256MiB
+     - MAGICK_THREAD_LIMIT=1
      # GCを積極的に動かすための設定
      - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.2
      - RUBY_GC_MALLOC_LIMIT=4000000
