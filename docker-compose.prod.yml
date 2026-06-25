@@ -37,6 +37,7 @@ services:
       - RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.2
       - RUBY_GC_MALLOC_LIMIT=4000000
       - RUBY_GC_MALLOC_LIMIT_MAX=16000000
+      - ACTION_DISPATCH_DEFAULT_HOST=taninin.com  # 追加
     deploy:
       resources:
         limits:
