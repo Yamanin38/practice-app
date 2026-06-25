@@ -3,11 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod # 本番用のファイルを指定
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails assets:clobber && bundle exec rails assets:precompile && chown -R 1000:1000 public/ storage/ && bundle exec rails s -p 3000 -b '0.0.0.0' -e production"
+    # 👇 修正①: public/ に対する chown を削除（Docker内部だけの管轄になるため不要になります）
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails assets:clobber && bundle exec rails assets:precompile && chown -R 1000:1000 storage/ && bundle exec rails s -p 3000 -b '0.0.0.0' -e production"
     restart: always
     volumes:
       - /home/pi/practice-app/storage:/app/storage
-      - /home/pi/practice-app/public:/app/public
+      # 👇 修正②: ホストのパス指定をやめ、Dockerの名前付きボリュームに変更
+      - public_assets:/app/public
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
@@ -54,8 +56,8 @@ services:
     image: nginx:alpine # 軽量なAlpineベースを使用
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      # 💡 【ここを修正】webコンテナと同じホストのパスをマウントして、静的ファイルを共有します
-      - /home/pi/practice-app/public:/app/public:ro
+      # 👇 修正③: webコンテナと同じ名前付きボリュームをマウントする
+      - public_assets:/app/public:ro
     depends_on:
       - web
     restart: always
@@ -65,6 +67,7 @@ services:
           memory: 48M # 48MB程度あればNginxには十分すぎます
 
   tunnel:
+    build: ./cloudflared
     image: cloudflare/cloudflared:latest
     # --no-autoupdate をつけてラズパイ上での不要なアップデート処理（CPU負荷）を防ぐ
     command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
@@ -77,7 +80,8 @@ services:
       resources:
         limits:
           memory: 64M # 通常はこれで足ります。APIの通信量が多い場合は128Mに増やしてもOK
-    
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   db:
     image: yobasystems/alpine-mariadb
     restart: always
@@ -105,3 +109,4 @@ services:
       - mariadb_data:/var/lib/mysql
 volumes:
   mariadb_data:
+  public_assets: # 👈 追加
