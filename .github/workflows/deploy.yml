@@ -37,10 +37,12 @@ jobs:
             User ${{ secrets.RASPI_USER_NAME }}
             StrictHostKeyChecking no
             BatchMode yes
-            ConnectTimeout 10
-            ServerAliveInterval 10
-            ServerAliveCountMax 3
-            # 【復活】通信をWebソケットに変換してCloudflareの壁を越える
+            ConnectTimeout 30        # 10→30へ延長
+            ServerAliveInterval 15   # 10→15へ変更
+            ServerAliveCountMax 5    # 3→5へ増加
+            # 【重要】リトライを強制するオプションを追加
+            ControlMaster auto
+            ControlPersist 60s
             ProxyCommand cloudflared access ssh --hostname %h
           EOF
           chmod 600 $HOME/.ssh/config
