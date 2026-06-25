@@ -63,9 +63,6 @@ Rails.application.configure do
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
-
-   # ログレベルを info に変更して細かいデバッグログ（SQLなど）を出さないようにする
-  config.log_level = :info
   
   # Action Viewのレンダリングログを無効化する
   config.action_view.logger = nil
@@ -81,7 +78,7 @@ Rails.application.configure do
   # "info" includes generic and useful information about system operation, but avoids logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII). If you
   # want to log everything, set the level to "debug".
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "warn")
 
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store

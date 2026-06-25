@@ -981,7 +981,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
+  max-height: 80vh;
   max-width: 450px; /* 写真投稿用は少しスリムに */
 }
 
@@ -1703,7 +1703,13 @@ function fetchImages(date) {
     headers: { 'X-Requested-With': 'XMLHttpRequest' },
     cache: 'no-store'
   })
-    .then(res => res.text())
+    .then(res => {// ▼▼ ここを追加 ▼▼
+      if (res.status === 404) {
+        window.location.reload(); // 画面を更新して最新の状態（無い状態）にする
+        throw new Error('対象のデータはすでに削除されています。');
+      }
+      return res.text();
+    })
     .then(html => {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
@@ -1761,6 +1767,14 @@ async function pollUploadStatus(trackingIds) {
         },
         body: JSON.stringify({ tracking_ids: trackingIds })
       });
+
+      // ▼▼ ここを追加 ▼▼
+      if (statusRes.status === 404) {
+        clearInterval(intervalId); // 定期チェックを止める
+        alert("対象のデータがすでに削除されているか、存在しません。");
+        window.location.reload(); // 画面を最新状態にする
+        return;
+      }
 
       const statusData = await statusRes.json();
 

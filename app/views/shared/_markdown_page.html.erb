@@ -61,7 +61,6 @@
         </div>
       </div>
       <div class="modal-body">
-        <p class="editor-hint">マークダウン形式で入力できます</p>
         <%= form_with url: local_assigns[:update_path], method: :patch, id: "editAboutForm", local: true do |f| %>
           <div class="form-group">
             <%= f.text_area :content,
@@ -97,27 +96,81 @@
   /* ===== このpartialで上書きが必要な箇所のみ記述 ===== */
   /* ※ 大部分のスタイルは pages.css の CSS変数を継承 */
 
-  /* EasyMDE ツールバー・エディタをテーマに合わせる */
-  .EasyMDEContainer {
-    border-radius: 8px;
+  /* --- モーダル自体の高さを画面内に完全に収める（はみ出し防止の土台） --- */
+  #editAboutModal .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* max-heightから固定のheightに変更することでサイズを安定化 */
+    max-height: 80vh;
     overflow: hidden;
-    border: 1px solid var(--clr-border, #5a3510);
   }
+
+  #editAboutModal .modal-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden; /* モーダル本体は絶対にスクロールさせない */
+    padding-bottom: 20px;
+    min-height: 0;    /* Flexの子要素が中身に引っ張られて伸びるのを防ぐ */
+  }
+
+  #editAboutForm {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  #editAboutForm .form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    margin-bottom: 0;
+    min-height: 0;
+  }
+
+  /* --- EasyMDE ツールバー・エディタを枠内に閉じ込める --- */
+  .EasyMDEContainer {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--clr-border, #5a3510);
+    min-height: 0;
+  }
+
+  /* ツールバーの高さが潰れないように固定 */
+  .EasyMDEContainer .editor-toolbar {
+    flex-shrink: 0;
+    background: #956900;
+    border-color: #150d00;
+  }
+
+  /* エディタ本体：無限に伸びるのを防ぐ最重要設定 */
   .EasyMDEContainer .CodeMirror {
+    flex: 1;
+    min-height: 0;            /* これがないと文字量に応じて枠が伸びます */
+    height: 100% !important;  /* height: auto をやめて100%に固定 */
     border-radius: 0;
-    min-height: 340px;
     font-size: 0.95rem;
     background: var(--clr-bg, #150d00) !important;
     color: var(--clr-text, #e8d5b0) !important;
     border: none;
   }
+
+  /* スクロール領域をエディタの内側に限定する */
   .EasyMDEContainer .CodeMirror-scroll {
     background: var(--clr-bg, #150d00);
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important; /* 縦スクロールを強制的に有効化 */
+    /* ⭕ 追記：iOS（iPhone）でのスクロールを強制的に有効化する魔法のプロパティ */
+    -webkit-overflow-scrolling: touch !important;
   }
-  .editor-toolbar {
-    background: #956900;
-    border-color: #150d00;
-  }
+
   .editor-toolbar a {
     color: var(--clr-text-muted, #a08060) !important;
   }
@@ -136,6 +189,67 @@
   .cm-s-easymde .cm-header { color: var(--clr-gold-light, #e8a820); }
   .cm-s-easymde .cm-link { color: var(--clr-gold, #c8820a); }
   .cm-s-easymde .cm-string { color: #d0b090; }
+  
+  @media (max-width: 1024px) {
+    #editAboutModal .modal-content {
+      height: 60vh;      /* PC時の80vhから60vhに縮小（お好みの高さに調整してください） */
+      max-height: 60vh;
+    }
+  }
+
+  /* =================================================== */
+  /* ここに追加：モーダルの中央配置とスマホ特有のスクロール対策 */
+  /* =================================================== */
+  
+  /* モーダルの背景（暗転部分）の設定 */
+  .modal {
+    /* JSで display: flex に切り替わったときに中央寄せを機能させる */
+    align-items: center;
+    justify-content: center;
+    /* モーダル内を一番下までスクロールした際、背景まで一緒にスクロールしてしまう現象を防ぐ */
+    overscroll-behavior: contain;
+  }
+
+  /* 外部CSSによる余計な余白(margin)を打ち消し、確実にど真ん中に配置する */
+  #editAboutModal .modal-content,
+  #discardConfirmModal .modal-content {
+    margin: 0;
+  }
+
+  /* モーダルの背景（暗転エリア） */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(18, 10, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(3px);
+    /* ⭕ 追記: スクロールが背景に突き抜けるのを防ぐ */
+    overscroll-behavior: contain;
+  }
+
+  .modal-wrapper form {
+    overflow-y: auto;
+    flex: 1;
+    margin: 0 -24px -24px;
+    padding: 0 24px 24px;
+    /* ⭕ 追記: フォーム内スクロールの突き抜け防止とiOSの滑らかスクロール */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ⭕ 追記: テキストエリア単体でのスクロール突き抜けも個別にブロックする */
+  #editArticleModal textarea {
+    overscroll-behavior: contain;
+  }
+
+  /* EasyMDEのエディタ内でスクロールが突き抜けて背景が動くのを防ぐ */
+  .EasyMDEContainer .CodeMirror-scroll {
+    overscroll-behavior: contain !important;
+  }
+
 </style>
 
 <!-- EasyMDE JS -->
@@ -152,18 +266,25 @@
     const textarea           = document.getElementById('aboutContent');
     const saveForm           = document.getElementById('editAboutForm');
 
-    // ページロード時点のサーバー保存済み内容（破棄時にここへ戻す）
     const savedContent = textarea.value;
     let originalContent = '';
     let easyMDE = null;
 
+    // ⭕ 修正: 開いた瞬間の背景のスクロール位置を記憶する変数を追加
+    let aboutModalScrollY = 0; 
+
     // ===== モーダルを開く =====
     function openEditModal() {
-      editAboutModal.style.display = 'block';
+      editAboutModal.style.display = 'flex';
+      
+      // ⭕ 修正: モーダルが開いた瞬間に背景（body）を現在の位置で物理的にピン留め固定する
+      aboutModalScrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${aboutModalScrollY}px`;
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
 
       if (!easyMDE) {
-        // EasyMDE を初回だけ初期化
         easyMDE = new EasyMDE({
           element: textarea,
           spellChecker: false,
@@ -179,12 +300,16 @@
           status: ["lines", "words"],
         });
       } else {
-        // 2回目以降: 常にサーバー保存済み内容にリセット（破棄後も正しく戻る）
         easyMDE.value(savedContent);
       }
 
-      // 「変更あり」の基準をリセット
       originalContent = easyMDE.value();
+
+      setTimeout(() => {
+        if (easyMDE) {
+          easyMDE.codemirror.refresh();
+        }
+      }, 50);
     }
 
     // ===== 変更があるか判定 =====
@@ -196,12 +321,18 @@
     // ===== 編集モーダルを閉じる（確定） =====
     function forceCloseEditModal() {
       editAboutModal.style.display = 'none';
+      
+      // ⭕ 修正: 背景のピン留めを解除し、元のスクロール位置に違和感なく戻す
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
+      window.scrollTo(0, aboutModalScrollY);
     }
 
     // ===== 確認モーダルを開く =====
     function openDiscardConfirm() {
-      discardConfirmModal.style.display = 'block';
+      discardConfirmModal.style.display = 'flex';
     }
 
     // ===== 確認モーダルを閉じる =====
@@ -221,7 +352,7 @@
     // ===== 確認モーダル: 「破棄する」 =====
     confirmDiscard.addEventListener('click', () => {
       if (easyMDE) {
-        easyMDE.value(savedContent); // 確実にリセットする
+        easyMDE.value(savedContent);
         originalContent = savedContent;
       }
       closeDiscardConfirm();
@@ -234,7 +365,6 @@
     });
 
     // ===== 外クリックでは閉じない（両モーダル共通） =====
-    // ※ 何もしないことで閉じない挙動を実現
     editAboutModal.addEventListener('click', (e) => {
       e.stopPropagation();
     });

@@ -5,7 +5,11 @@ default: &default
   host: <%= ENV.fetch("DATABASE_HOST", "db") %>
   username: <%= ENV["DATABASE_USER"] %>
   password: <%= ENV["DATABASE_PASSWORD"] %>
-
+  # ⬇︎ここから追加⬇︎
+  reconnect: true         # 接続が切れていた場合、自動で再接続を試みる
+  reaping_frequency: 10   # 10秒ごとに死んだ接続（コネクション）をプールから掃除する
+  variables:
+    wait_timeout: 28800   # MySQL側のタイムアウト時間を明示的に長く設定（8時間）
 development:
   primary:
     <<: *default
