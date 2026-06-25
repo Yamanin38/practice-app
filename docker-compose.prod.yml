@@ -75,6 +75,9 @@ services:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     depends_on:
       - nginx
+    volumes:
+    # ホストの .cloudflared フォルダをコンテナに渡す
+      - /home/pi/.cloudflared:/home/nonroot/.cloudflared
     restart: always
     deploy:
       resources:
