@@ -25,4 +25,6 @@ end
   # お問い合わせ用のルート
   get  'contact', to: 'contacts#new'
   post 'contact', to: 'contacts#create'
+  # ルーティングにマッチしなかった不審なアクセスを、ログを汚さずに404を返す
+  match '*path', to: proc { [404, { 'Content-Type' => 'text/plain' }, ['Not Found']] }, via: :all
 end
