@@ -53,7 +53,7 @@ services:
   db:
     image: yobasystems/alpine-mariadb
     restart: always
-    command: --innodb-buffer-pool-size=64M --innodb-log-buffer-size=8M --max-connections=20 --innodb-temp-data-file-path=ibtmp1:12M:autoextend:max:32M
+    command: --innodb-buffer-pool-size=96M --innodb-log-buffer-size=8M --max-connections=20 --innodb-temp-data-file-path=ibtmp1:12M:autoextend:max:32M
     environment:
       # .env ファイルの値を読み込んでMariaDBを初期化します
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
