@@ -60,7 +60,8 @@ services:
       # 👇 修正③: webコンテナと同じ名前付きボリュームをマウントする
       - public_assets:/app/public:ro
     depends_on:
-      - web
+      web:                          # ← ここを修正
+      condition: service_started  # ← 追加
     restart: always
     deploy:
       resources:
