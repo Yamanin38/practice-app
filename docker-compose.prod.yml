@@ -53,22 +53,6 @@ services:
       db:
         condition: service_healthy
 
-  nginx:
-    image: nginx:alpine # 軽量なAlpineベースを使用
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      # 👇 修正③: webコンテナと同じ名前付きボリュームをマウントする
-      - public_assets:/app/public:ro
-      - /home/pi/practice-app/storage:/app/storage:ro # ← Nginxにもここを見せる
-    depends_on:
-      web:                          # ← ここを修正
-        condition: service_started  # ← 追加
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 48M # 48MB程度あればNginxには十分すぎます
-
   tunnel:
     build: ./cloudflared
     image: cloudflare/cloudflared:latest
