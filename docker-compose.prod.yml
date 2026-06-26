@@ -52,24 +52,6 @@ services:
       db:
         condition: service_healthy
 
-  tunnel:
-    build: ./cloudflared
-    image: cloudflare/cloudflared:latest
-    # --no-autoupdate をつけてラズパイ上での不要なアップデート処理（CPU負荷）を防ぐ
-    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
-    network_mode: "host"
-    environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    volumes:
-    # ホストの .cloudflared フォルダをコンテナに渡す
-      - /home/pi/.cloudflared:/home/nonroot/.cloudflared
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 64M # 通常はこれで足ります。APIの通信量が多い場合は128Mに増やしてもOK
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   db:
     image: yobasystems/alpine-mariadb
     restart: always
@@ -97,4 +79,3 @@ services:
       - mariadb_data:/var/lib/mysql
 volumes:
   mariadb_data:
-  public_assets: # 👈 追加
