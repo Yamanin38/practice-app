@@ -69,7 +69,10 @@ config.action_controller.default_url_options = {
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  #config.force_ssl = true
+
+  # 代わりにこれを追加
+  config.assume_ssl = true
   
   # Action Viewのレンダリングログを無効化する
   config.action_view.logger = nil
