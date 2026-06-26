@@ -10,7 +10,6 @@ Rails.application.configure do
   config.hosts << "localhost"
   # 自分のドメインからのアクセスを許可する
   config.hosts << "taninin.com"
-  config.hosts << "web"  # ← 追加
 
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers
@@ -33,7 +32,7 @@ config.action_controller.default_url_options = {
   # config.require_master_key = true
 
   # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
-   config.public_file_server.enabled = false
+   config.public_file_server.enabled = true
 
   # 既存のコメントを外して追加
   config.public_file_server.headers = {

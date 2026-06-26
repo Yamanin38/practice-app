@@ -10,6 +10,8 @@ services:
       - /home/pi/practice-app/storage:/app/storage
       # 👇 修正②: ホストのパス指定をやめ、Dockerの名前付きボリュームに変更
       - public_assets:/app/public
+      # 👇 これを追加！ webコンテナと同じstorageパスをNginxにも見せる
+      - /home/pi/practice-app/storage:/app/storage:ro
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
@@ -25,7 +27,7 @@ services:
       - RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
       - RAILS_ENV=production
       - RAILS_LOG_TO_STDOUT=true
-      - RAILS_LOG_LEVEL=warn
+      - RAILS_LOG_LEVEL=info
       #- RAILS_SERVE_STATIC_FILES=true # これを有効にする
       - WEB_CONCURRENCY=0      # 👈 プロセス数を「シングル（0）」にしてメモリを劇的に節約
 #     - RAILS_MAX_THREADS=5    # 👈 同時処理スレッド数を5程度に制限（ラズパイにはこれで十分）
