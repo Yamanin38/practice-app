@@ -8,8 +8,6 @@ services:
     volumes:
       - /home/pi/practice-app/storage:/app/storage
       - /home/pi/practice-app/public:/app/public  # 👈 【重要】この1行を追加！
-    ports:
-      - "127.0.0.1:3000:3000"
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
@@ -77,5 +75,41 @@ services:
     volumes:
       # データベースの中身が消えないようにボリュームをマウントします
       - mariadb_data:/var/lib/mysql
+
+  # 💡 新規追加: Nginxリバースプロキシ
+  nginx:
+    image: nginx:alpine  # ラズパイのために最軽量の alpine を使用
+    restart: always
+    depends_on:
+      - web
+    web:                          # ← ここを修正
+      condition: service_started  # ← 追加
+    volumes:
+      # 設定ファイルの配置
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Railsのpublicアセットをマウント（Nginx側からも見えるようにする）
+      - /home/pi/practice-app/public:/app/public:ro
+    deploy:
+      resources:
+        limits:
+          memory: 32M  # Nginxは非常に軽量なので32MBで十分です
+
+  # 💡 新規追加: Cloudflare Tunnel
+  cloudflared:
+    build:
+      context: .
+      dockerfile: ./cloudflared/Dockerfile  # ご提示のDockerfileを使ってARM用にビルド
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    command: tunnel run
+    depends_on:
+      - nginx
+    deploy:
+      resources:
+        limits:
+          memory: 64M  # cloudflaredも軽量ですが、少し余裕を持って64MB制限
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 volumes:
   mariadb_data:
