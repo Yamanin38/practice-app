@@ -16,8 +16,8 @@ class ImageUploadJob < ApplicationJob
     image.save!
 
     # 事前にサムネイル画像（Variant）を生成
-    image.file.representation(resize_to_fill: [800, 800]).processed
-    image.file.representation(resize_to_fill: [400, 400]).processed
+    image.file.variant(resize_to_fill: [800, 800]).processed
+    image.file.variant(resize_to_fill: [400, 400]).processed
   ensure
     File.delete(tempfile_path) if File.exist?(tempfile_path)
     Rails.cache.write("upload_job_#{job_tracking_id}", "completed", expires_in: 5.minutes)

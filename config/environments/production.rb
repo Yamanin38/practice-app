@@ -21,12 +21,6 @@ Rails.application.configure do
   config.consider_all_requests_local = false
   config.action_controller.perform_caching = true
 
-  # ホスト名を明示的に指定
-config.action_controller.default_url_options = {
-  host: "taninin.com",
-  protocol: "https"
-}
-
   # Ensures that a master key has been made available in ENV["RAILS_MASTER_KEY"], config/master.key, or an environment
   # key such as config/credentials/production.key. This key is used to decrypt credentials (and other encrypted files).
   # config.require_master_key = true
@@ -49,16 +43,11 @@ config.action_controller.default_url_options = {
   # config.asset_host = "http://assets.example.com"
 
   # Specifies the header that your server uses for sending files.
-  config.action_dispatch.trusted_proxies = [IPAddr.new("0.0.0.0/0")]
   # config.action_dispatch.x_sendfile_header = "X-Sendfile" # for Apache
   # config.action_dispatch.x_sendfile_header = "X-Accel-Redirect" # for NGINX
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
-
-  # RailsがNginxに対して、ファイル配信を委譲する設定
-config.active_storage.service_urls_expire_in = 1.hour
-config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect'
 
   # ProxyモードでActiveStorageを配信（URLが固定されキャッシュが効く）
   config.active_storage.resolve_model_to_route = :rails_storage_proxy
@@ -73,10 +62,7 @@ config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect'
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  #config.force_ssl = true
-
-  # 代わりにこれを追加
-  config.assume_ssl = true
+  config.force_ssl = true
   
   # Action Viewのレンダリングログを無効化する
   config.action_view.logger = nil
