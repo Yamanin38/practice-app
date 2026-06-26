@@ -56,6 +56,10 @@ config.action_controller.default_url_options = {
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
+  # RailsがNginxに対して、ファイル配信を委譲する設定
+config.active_storage.service_urls_expire_in = 1.hour
+config.action_dispatch.x_sendfile_header = 'X-Accel-Redirect'
+
   # ProxyモードでActiveStorageを配信（URLが固定されキャッシュが効く）
   config.active_storage.resolve_model_to_route = :rails_storage_proxy
 

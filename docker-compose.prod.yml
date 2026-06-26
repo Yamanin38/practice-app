@@ -61,6 +61,7 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       # 👇 修正③: webコンテナと同じ名前付きボリュームをマウントする
       - public_assets:/app/public:ro
+      - /home/pi/practice-app/storage:/storage:ro
     depends_on:
       web:                          # ← ここを修正
         condition: service_started  # ← 追加
