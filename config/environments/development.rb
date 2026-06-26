@@ -1,6 +1,8 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  # Docker環境からのアクセスを許可する設定
+config.web_console.whitelisted_ips = '192.168.0.0/16'
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded any time
