@@ -60,6 +60,7 @@ services:
     image: cloudflare/cloudflared:latest
     # --no-autoupdate をつけてラズパイ上での不要なアップデート処理（CPU負荷）を防ぐ
     command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    network_mode: "host"
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     volumes:
