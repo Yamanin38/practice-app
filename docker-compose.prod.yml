@@ -60,8 +60,6 @@ services:
     command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
-    depends_on:
-      - nginx
     volumes:
     # ホストの .cloudflared フォルダをコンテナに渡す
       - /home/pi/.cloudflared:/home/nonroot/.cloudflared
