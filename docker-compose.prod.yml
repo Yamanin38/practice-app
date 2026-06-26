@@ -11,7 +11,7 @@ services:
       # 👇 修正②: ホストのパス指定をやめ、Dockerの名前付きボリュームに変更
       - public_assets:/app/public
       # 👇 これを追加！ webコンテナと同じstorageパスをNginxにも見せる
-      - /home/pi/practice-app/storage:/app/storage:ro
+      - /home/pi/practice-app/storage:/app/storage:rw
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
