@@ -10,6 +10,8 @@ services:
       - /home/pi/practice-app/storage:/app/storage
       # 👇 修正②: ホストのパス指定をやめ、Dockerの名前付きボリュームに変更
       - public_assets:/app/public
+    ports:
+      - "127.0.0.1:3000:3000"  # これにより、ホストの3000番がコンテナの3000番に繋がります
     environment:
       # 左側がコンテナ内の変数名、右側が .env から読み込む変数名
       - TZ=Asia/Tokyo  # ログのためにUTCからJSTにする
