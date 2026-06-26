@@ -33,7 +33,7 @@ config.action_controller.default_url_options = {
   # config.require_master_key = true
 
   # Disable serving static files from `public/`, relying on NGINX/Apache to do so instead.
-   #config.public_file_server.enabled = true
+   config.public_file_server.enabled = false
 
   # 既存のコメントを外して追加
   config.public_file_server.headers = {
