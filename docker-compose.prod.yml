@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.prod # 本番用のファイルを指定
     # 👇 修正①: public/ に対する chown を削除（Docker内部だけの管轄になるため不要になります）
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails assets:clobber && bundle exec rails assets:precompile && chown -R 1000:1000 storage/ && bundle exec rails s -p 3000 -b '0.0.0.0' -e production"
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails assets:clobber && bundle exec rails assets:precompile && bundle exec rails s -p 3000 -b '0.0.0.0' -e production"
     restart: always
     volumes:
       - /home/pi/practice-app/storage:/app/storage
