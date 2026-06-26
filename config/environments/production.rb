@@ -10,6 +10,7 @@ Rails.application.configure do
   config.hosts << "localhost"
   # 自分のドメインからのアクセスを許可する
   config.hosts << "taninin.com"
+  config.hosts << "web"  # ← 追加
 
   # Eager load code on boot. This eager loads most of Rails and
   # your application in memory, allowing both threaded web servers

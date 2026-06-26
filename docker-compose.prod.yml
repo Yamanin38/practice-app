@@ -61,7 +61,7 @@ services:
       - public_assets:/app/public:ro
     depends_on:
       web:                          # ← ここを修正
-      condition: service_started  # ← 追加
+        condition: service_started  # ← 追加
     restart: always
     deploy:
       resources:
