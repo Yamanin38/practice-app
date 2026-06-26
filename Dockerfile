@@ -1,7 +1,14 @@
 FROM ruby:3.3
 
 # 開発に必要なパッケージをインストール
-RUN apt-get update -qq && apt-get install -y nodejs sqlite3 libsqlite3-dev imagemagick
+RUN apt-get update -qq && apt-get install -y \
+    nodejs \
+    sqlite3 \
+    libsqlite3-dev \
+    imagemagick \
+    shared-mime-info \
+    libvips-dev \
+    libjemalloc2
 
 WORKDIR /app
 
