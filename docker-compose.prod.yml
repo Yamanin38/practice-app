@@ -109,6 +109,10 @@ services:
       context: .
       dockerfile: ./cloudflared/Dockerfile  # ご提示のDockerfileを使ってARM用にビルド
     restart: always
+    # --- 追記開始 ---
+    sysctls:
+      - net.core.rmem_max=7208960
+      - net.core.rmem_default=7208960
     environment:
       TUNNEL_TOKEN: "${TUNNEL_TOKEN}"
       TUNNEL_LOGLEVEL: "warn"
