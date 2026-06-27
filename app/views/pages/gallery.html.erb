@@ -44,7 +44,7 @@
         <% @images.each do |image| %>
   <div class="gallery-item" onclick="openImageModal(<%= image.id %>, '<%= @user&.admin? %>')">
     <% if image.file.present? %>
-      <%= image_tag image.file.representation(resize_to_fill: [400, 400]),
+      <%= image_tag image.file,
     alt: "Gallery image",
     class: "gallery-image",
     data: {
