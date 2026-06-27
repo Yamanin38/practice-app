@@ -74,8 +74,18 @@ end
   end
 
   def authorize_owner!
+  # 管理者は無制限
+  return if current_user&.admin?
+
+  # 未ログインは弾く
   unless current_user
-    redirect_to articles_path
+    redirect_to articles_path, alert: "権限がありません"
+    return
+  end
+
+  # メンバーは3分以内のみ
+  if Time.current - @article.updated_at > 3.minutes
+    redirect_to articles_path, alert: "投稿から3分以上経過したため編集できません"
   end
 end
 
