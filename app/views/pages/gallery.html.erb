@@ -93,8 +93,9 @@
         </div>
 
         <div class="upload-file-group">
-          <label for="file_input_field" class="file-label">画像を選択（最大4枚）</label>
-          <%= f.file_field :files, multiple: true, accept: "image/*", required: true, id: "file_input_field", name: "files[]" %>
+          <label for="file_input_field" class="file-label">写真を選択（最大4枚）</label>
+          <%= f.file_field :files, multiple: true, accept: "image/*", id: "file_input_field", name: "files[]" %>
+
         </div>
 
         <%= f.submit "投稿する", class: "btn btn-primary upload-submit-btn", id: "submitBtn", disabled: true %>
@@ -1120,10 +1121,12 @@
   
   if (uploadForm) {
     uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); // 通常の画面遷移（フォーム送信）をストップ！
-
-      // 1. ボタンを「処理中」にして操作をロック
-      submitBtn.disabled = true;
+  e.preventDefault();
+  if (selectedFiles.length === 0) {
+    alert('写真を1枚以上選択してください。');
+    return;
+  }
+  submitBtn.disabled = true;
       submitBtn.value = '投稿中...';
 
        // ×ボタンを無効化（spanなのでpointer-eventsで制御）
@@ -1518,7 +1521,9 @@ function resetUploadForm() {
 }
 
 if (fileInputField && uploadPreviewArea) {
+  // 修正後
   fileInputField.addEventListener('change', (e) => {
+    if (!e.target.files || e.target.files.length === 0) return;
     addFiles(e.target.files);
   });
 
