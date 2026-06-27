@@ -73,21 +73,22 @@
     <% end %>
 
     <div class="markdown-body">
-      <%# コントローラで変換したHTMLを安全に出力 %>
-      <%= @html_content.html_safe %>
-    </div>
+  <%# コントローラで変換したHTMLを安全に出力 %>
+  <%= @html_content.html_safe %>
+</div>
 
-    <% if @user %>
-      <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
-        <button type="button" class="btn btn-primary" onclick="openEditModal()">この活動記録を編集</button>
-        <% if @user.admin? %>
-          <button type="button" class="btn btn-danger"
-            onclick="openDeleteConfirmModal()">削除する</button>
-        <% end %>
-      </div>
+<% editable = @user&.admin? || (Time.current - @article.updated_at <= 3.minutes) %>
+<% if @user && editable %>
+  <div class="form-actions" style="margin-top: 60px; padding-top: 24px; border-top: 1px dashed var(--clr-border); justify-content: flex-end;">
+    <button type="button" class="btn btn-primary" onclick="openEditModal()">この活動記録を編集</button>
+    <% if @user.admin? %>
+      <button type="button" class="btn btn-danger"
+        onclick="openDeleteConfirmModal()">削除する</button>
     <% end %>
-    
-  </article>
+  </div>
+<% end %>
+
+</article>
 </div>
 
 <div id="editArticleModal" class="modal-overlay" style="display: none;">
