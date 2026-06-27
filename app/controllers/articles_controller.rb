@@ -84,7 +84,7 @@ end
   end
 
   # メンバーは3分以内のみ
-  if Time.current - @article.updated_at > 3.minutes
+  if Time.current - @article.created_at > 3.minutes
     redirect_to articles_path, alert: "投稿から3分以上経過したため編集できません"
   end
 end
