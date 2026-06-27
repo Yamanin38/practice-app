@@ -71,7 +71,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 160M
     logging:                  # 👈 ここから追記
       driver: "json-file"
       options:
@@ -96,7 +96,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 32M  # Nginxは非常に軽量なので32MBで十分です
+          memory: 16M  # Nginxは非常に軽量なので32MBで十分です
     logging:                  # 👈 ここから追記
       driver: "json-file"
       options:
@@ -118,7 +118,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 64M  # cloudflaredも軽量ですが、少し余裕を持って64MB制限
+          memory: 48M  # cloudflaredも軽量ですが、少し余裕を持って64MB制限
     logging:                  # 👈 ここから追記
       driver: "json-file"
       options:
