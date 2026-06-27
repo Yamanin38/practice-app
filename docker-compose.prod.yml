@@ -44,8 +44,8 @@ services:
     logging:                  # 👈 ここから追記
       driver: "json-file"
       options:
-        max-size: "10m"       # 1ファイル最大10MB
-        max-file: "3"         # 過去3ファイルまで保持（古いものは自動削除）
+        max-size: "5m"       # 1ファイル最大10MB
+        max-file: "1"         # 過去3ファイルまで保持（古いものは自動削除）
     depends_on:
       db:
         condition: service_healthy
@@ -72,6 +72,11 @@ services:
       resources:
         limits:
           memory: 128M
+    logging:                  # 👈 ここから追記
+      driver: "json-file"
+      options:
+        max-size: "5m"       # 1ファイル最大10MB
+        max-file: "1"         # 過去3ファイルまで保持（古いものは自動削除）
     volumes:
       # データベースの中身が消えないようにボリュームをマウントします
       - mariadb_data:/var/lib/mysql
@@ -92,6 +97,11 @@ services:
       resources:
         limits:
           memory: 32M  # Nginxは非常に軽量なので32MBで十分です
+    logging:                  # 👈 ここから追記
+      driver: "json-file"
+      options:
+        max-size: "5m"       # 1ファイル最大10MB
+        max-file: "1"         # 過去3ファイルまで保持（古いものは自動削除）
 
   # 💡 新規追加: Cloudflare Tunnel
   cloudflared:
@@ -100,7 +110,8 @@ services:
       dockerfile: ./cloudflared/Dockerfile  # ご提示のDockerfileを使ってARM用にビルド
     restart: always
     environment:
-      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      TUNNEL_TOKEN: "${TUNNEL_TOKEN}"
+      TUNNEL_LOGLEVEL: "warn"
     command: tunnel run
     depends_on:
       - nginx
@@ -108,6 +119,11 @@ services:
       resources:
         limits:
           memory: 64M  # cloudflaredも軽量ですが、少し余裕を持って64MB制限
+    logging:                  # 👈 ここから追記
+      driver: "json-file"
+      options:
+        max-size: "5m"       # 1ファイル最大10MB
+        max-file: "1"         # 過去3ファイルまで保持（古いものは自動削除）
     extra_hosts:
       - "host.docker.internal:host-gateway"
 volumes:
