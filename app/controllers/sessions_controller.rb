@@ -6,6 +6,7 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(username: params[:username])
     if user&.authenticate(params[:password])
+    reset_session  # ← これを追加するだけ。古いセッションIDを破棄して新しいIDを発行
       # 【最重要】ここが必ず必要です！
     session[:user_id] = user.id
     session[:session_token] = user.session_token
