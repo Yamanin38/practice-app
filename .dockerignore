@@ -35,3 +35,18 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+
+# 開発用・テスト用ディレクトリ
+/test/
+
+# Git・ドキュメント関連
+/.github/
+/.gitignore
+/README.md
+
+# Docker関連設定ファイル
+/docker-compose.yml
+/docker-compose.prod.yml
+/Dockerfile
+/Dockerfile.prod
+/.dockerignore
