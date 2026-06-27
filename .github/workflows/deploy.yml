@@ -54,4 +54,10 @@ jobs:
             --exclude='.env' \
             --exclude='storage/' \
             --exclude='cloudflared.deb' \
+            --exclude='test/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='README.md' \
+            --exclude='log/' \
+            --exclude='tmp/' \
             -e "ssh -F $HOME/.ssh/config" ./ yamapi:/home/pi/practice-app/
