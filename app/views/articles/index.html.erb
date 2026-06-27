@@ -67,7 +67,7 @@
               <p class="article-meta">
             <%= article.user.username %> ・ <%= article.created_at.strftime("%Y年%m月%d日") %>
           </p>
-          <% editable = @user&.admin? || (Time.current - article.updated_at <= 3.minutes) %>
+          <% editable = @user&.admin? || (Time.current - article.created_at <= 3.minutes) %>
           <% if @user && editable %>
             <div class="article-actions">
               <%= link_to "編集", article_path(article, edit: true), class: "btn btn-secondary btn-sm" %>
